@@ -1,0 +1,78 @@
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background: #f4f6f9;
+}
+
+header {
+    text-align: center;
+    padding: 40px;
+    background: #1e293b;
+    color: white;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 36px;
+}
+
+.search-container {
+    text-align: center;
+    margin: 20px;
+}
+
+#searchInput {
+    padding: 10px;
+    width: 300px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.patterns {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    width: 300px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+button {
+    padding: 8px 12px;
+    border: none;
+    background: #2563eb;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1d4ed8;
+}
+
+.content {
+    display: none;
+    margin-top: 10px;
+    background: #f1f5f9;
+    padding: 10px;
+    border-radius: 6px;
+    overflow-x: auto;
+}
+
+@media (max-width: 600px) {
+    #searchInput {
+        width: 90%;
+    }
+}
