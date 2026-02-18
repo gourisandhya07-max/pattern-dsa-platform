@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>DSA Pattern Hub</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -11,17 +11,24 @@
 <header>
     <h1>DSA Pattern Hub</h1>
     <p>Learn patterns. Practice smart. Crack interviews.</p>
+    <button id="darkModeToggle">Toggle Dark Mode</button>
 </header>
 
 <div class="search-container">
-
     <input type="text" id="searchInput" placeholder="Search pattern...">
+    <select id="difficultyFilter">
+        <option value="all">All Difficulties</option>
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+    </select>
 </div>
 
 <section class="patterns" id="patternsContainer">
 
     <!-- Sliding Window -->
-    <div class="card">
+    <div class="card" data-difficulty="medium">
+        <div class="difficulty-badge medium">Medium</div>
         <h2>Sliding Window</h2>
         <p><strong>When to Use:</strong> Subarrays / substrings problems</p>
         <p><strong>Time Complexity:</strong> O(n)</p>
@@ -40,7 +47,8 @@ for(int right = 0; right < n; right++){
     </div>
 
     <!-- Dynamic Programming -->
-    <div class="card">
+    <div class="card" data-difficulty="hard">
+        <div class="difficulty-badge hard">Hard</div>
         <h2>Dynamic Programming</h2>
         <p><strong>When to Use:</strong> Overlapping subproblems</p>
         <p><strong>Time Complexity:</strong> O(n) or O(n²)</p>
@@ -57,7 +65,8 @@ for(int i = 1; i < n; i++){
     </div>
 
     <!-- Recursion -->
-    <div class="card">
+    <div class="card" data-difficulty="medium">
+        <div class="difficulty-badge medium">Medium</div>
         <h2>Recursion</h2>
         <p><strong>When to Use:</strong> Tree, backtracking, divide & conquer</p>
         <p><strong>Time Complexity:</strong> Depends on calls</p>
@@ -74,7 +83,8 @@ void solve(){
     </div>
 
     <!-- Queue -->
-    <div class="card">
+    <div class="card" data-difficulty="easy">
+        <div class="difficulty-badge easy">Easy</div>
         <h2>Queue</h2>
         <p><strong>When to Use:</strong> BFS, level order traversal</p>
         <p><strong>Time Complexity:</strong> O(1) per operation</p>
@@ -89,7 +99,8 @@ q.pop();
     </div>
 
     <!-- Binary Search -->
-    <div class="card">
+    <div class="card" data-difficulty="easy">
+        <div class="difficulty-badge easy">Easy</div>
         <h2>Binary Search</h2>
         <p><strong>When to Use:</strong> Sorted array</p>
         <p><strong>Time Complexity:</strong> O(log n)</p>
