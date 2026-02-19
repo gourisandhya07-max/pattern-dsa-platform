@@ -11,31 +11,46 @@ body.dark-mode {
     color: #f4f6f9;
 }
 
-header {
-    text-align: center;
-    padding: 40px;
+.nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
     background: #1e293b;
     color: white;
     position: relative;
 }
 
-header.dark-mode {
+.nav.dark-mode {
     background: #0f172a;
 }
 
-header h1 {
+.nav h1 {
     margin: 0;
-    font-size: 36px;
+    font-size: 24px;
 }
 
-header p {
-    margin: 10px 0 0 0;
+.nav ul {
+    list-style: none;
+    display: flex;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+}
+
+.nav ul li a {
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem;
+    transition: background 0.3s;
+}
+
+.nav ul li a:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
 }
 
 #darkModeToggle {
-    position: absolute;
-    top: 20px;
-    right: 20px;
     padding: 8px 12px;
     border: none;
     background: #2563eb;
@@ -47,6 +62,58 @@ header p {
 
 #darkModeToggle:hover {
     background: #1d4ed8;
+}
+
+.hero {
+    text-align: center;
+    padding: 40px;
+    background: #1e293b;
+    color: white;
+}
+
+.hero.dark-mode {
+    background: #0f172a;
+}
+
+.hero h2 {
+    margin: 0;
+    font-size: 36px;
+}
+
+.hero p {
+    margin: 10px 0 20px 0;
+}
+
+.cta-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #2563eb;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background 0.3s;
+}
+
+.cta-button:hover {
+    background: #1d4ed8;
+}
+
+.blog, .about {
+    padding: 40px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.blog h2, .about h2 {
+    text-align: center;
+}
+
+.blog article {
+    margin-bottom: 20px;
+}
+
+.blog article h3 {
+    margin-bottom: 10px;
 }
 
 .search-container {

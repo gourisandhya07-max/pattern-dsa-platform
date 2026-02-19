@@ -3,23 +3,39 @@ function toggleContent(button) {
     content.style.display = content.style.display === "block" ? "none" : "block";
 }
 
-const searchInput = document.getElementById("searchInput");
-searchInput.addEventListener("keyup", function () {
-    filterCards();
-});
-
-const difficultyFilter = document.getElementById("difficultyFilter");
-difficultyFilter.addEventListener("change", function () {
-    filterCards();
-});
-
 const darkModeToggle = document.getElementById("darkModeToggle");
-darkModeToggle.addEventListener("click", function () {
-    document.body.classList.toggle("dark-mode");
-    document.querySelector("header").classList.toggle("dark-mode");
-});
+if (darkModeToggle) {
+    darkModeToggle.addEventListener("click", function () {
+        document.body.classList.toggle("dark-mode");
+        const nav = document.querySelector(".nav");
+        if (nav) nav.classList.toggle("dark-mode");
+        const hero = document.querySelector(".hero");
+        if (hero) hero.classList.toggle("dark-mode");
+    });
+}
+
+// Only run search/filter on patterns page
+if (window.location.pathname.includes("patterns.html")) {
+    const searchInput = document.getElementById("searchInput");
+    if (searchInput) {
+        searchInput.addEventListener("keyup", function () {
+            filterCards();
+        });
+    }
+
+    const difficultyFilter = document.getElementById("difficultyFilter");
+    if (difficultyFilter) {
+        difficultyFilter.addEventListener("change", function () {
+            filterCards();
+        });
+    }
+}
 
 function filterCards() {
+    const searchInput = document.getElementById("searchInput");
+    const difficultyFilter = document.getElementById("difficultyFilter");
+    if (!searchInput || !difficultyFilter) return;
+
     const filter = searchInput.value.toLowerCase();
     const selectedDifficulty = difficultyFilter.value;
     const cards = document.querySelectorAll(".card");
