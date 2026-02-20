@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>DSA Pattern Hub - Patterns</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +17,7 @@
         <li><a href="blog.html">Blog</a></li>
         <li><a href="about.html">About</a></li>
     </ul>
-    <button id="darkModeToggle">Toggle Dark Mode</button>
+    <button id="darkModeToggle" title="Dark Mode">🌙</button>
 </nav>
 
 <div class="search-container">
@@ -27,17 +28,27 @@
         <option value="medium">Medium</option>
         <option value="hard">Hard</option>
     </select>
+    <button id="favoritesFilter" class="filter-btn" title="Show Favorites">
+        <span class="heart">♥</span>
+        <span class="favorite-count" id="favoriteCount">0</span>
+    </button>
+    <button id="clearFavoritesBtn" class="filter-btn clear-btn" title="Clear All Favorites">
+        Clear Favorites
+    </button>
 </div>
 
 <section class="patterns" id="patternsContainer">
 
     <!-- Sliding Window -->
-    <div class="card" data-difficulty="medium">
+    <div class="card" data-difficulty="medium" data-pattern-id="sliding-window">
+        <div class="card-header">
+            <h2>Sliding Window</h2>
+            <button class="favorite-btn" title="Add to Favorites">♡</button>
+        </div>
         <div class="difficulty-badge medium">Medium</div>
-        <h2>Sliding Window</h2>
         <p><strong>When to Use:</strong> Subarrays / substrings problems</p>
         <p><strong>Time Complexity:</strong> O(n)</p>
-        <button onclick="toggleContent(this)">View Details</button>
+        <button onclick="toggleContent(this)" class="toggle-btn">View Details</button>
         <div class="content">
 <pre>
 Template:
@@ -52,12 +63,15 @@ for(int right = 0; right < n; right++){
     </div>
 
     <!-- Dynamic Programming -->
-    <div class="card" data-difficulty="hard">
+    <div class="card" data-difficulty="hard" data-pattern-id="dynamic-programming">
+        <div class="card-header">
+            <h2>Dynamic Programming</h2>
+            <button class="favorite-btn" title="Add to Favorites">♡</button>
+        </div>
         <div class="difficulty-badge hard">Hard</div>
-        <h2>Dynamic Programming</h2>
         <p><strong>When to Use:</strong> Overlapping subproblems</p>
         <p><strong>Time Complexity:</strong> O(n) or O(n²)</p>
-        <button onclick="toggleContent(this)">View Details</button>
+        <button onclick="toggleContent(this)" class="toggle-btn">View Details</button>
         <div class="content">
 <pre>
 Template:
@@ -70,12 +84,15 @@ for(int i = 1; i < n; i++){
     </div>
 
     <!-- Recursion -->
-    <div class="card" data-difficulty="medium">
+    <div class="card" data-difficulty="medium" data-pattern-id="recursion">
+        <div class="card-header">
+            <h2>Recursion</h2>
+            <button class="favorite-btn" title="Add to Favorites">♡</button>
+        </div>
         <div class="difficulty-badge medium">Medium</div>
-        <h2>Recursion</h2>
         <p><strong>When to Use:</strong> Tree, backtracking, divide & conquer</p>
         <p><strong>Time Complexity:</strong> Depends on calls</p>
-        <button onclick="toggleContent(this)">View Details</button>
+        <button onclick="toggleContent(this)" class="toggle-btn">View Details</button>
         <div class="content">
 <pre>
 Template:
@@ -88,12 +105,15 @@ void solve(){
     </div>
 
     <!-- Queue -->
-    <div class="card" data-difficulty="easy">
+    <div class="card" data-difficulty="easy" data-pattern-id="queue">
+        <div class="card-header">
+            <h2>Queue</h2>
+            <button class="favorite-btn" title="Add to Favorites">♡</button>
+        </div>
         <div class="difficulty-badge easy">Easy</div>
-        <h2>Queue</h2>
         <p><strong>When to Use:</strong> BFS, level order traversal</p>
         <p><strong>Time Complexity:</strong> O(1) per operation</p>
-        <button onclick="toggleContent(this)">View Details</button>
+        <button onclick="toggleContent(this)" class="toggle-btn">View Details</button>
         <div class="content">
 <pre>
 Queue<int> q;
@@ -104,12 +124,15 @@ q.pop();
     </div>
 
     <!-- Binary Search -->
-    <div class="card" data-difficulty="easy">
+    <div class="card" data-difficulty="easy" data-pattern-id="binary-search">
+        <div class="card-header">
+            <h2>Binary Search</h2>
+            <button class="favorite-btn" title="Add to Favorites">♡</button>
+        </div>
         <div class="difficulty-badge easy">Easy</div>
-        <h2>Binary Search</h2>
         <p><strong>When to Use:</strong> Sorted array</p>
         <p><strong>Time Complexity:</strong> O(log n)</p>
-        <button onclick="toggleContent(this)">View Details</button>
+        <button onclick="toggleContent(this)" class="toggle-btn">View Details</button>
         <div class="content">
 <pre>
 int low = 0, high = n-1;
