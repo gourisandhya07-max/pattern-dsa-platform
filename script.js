@@ -1,5 +1,10 @@
 // Dark Mode Management with localStorage
+let darkModeInitialized = false;
+
 function initializeDarkMode() {
+    if (darkModeInitialized) return;
+    darkModeInitialized = true;
+    
     const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
     const darkModeToggle = document.getElementById("darkModeToggle");
     
@@ -10,7 +15,7 @@ function initializeDarkMode() {
         darkModeToggle.addEventListener("click", function (e) {
             e.preventDefault();
             // Get current state
-            const isDarkModeCurrently = document.body.classList.contains("dark-mode");
+            const isDarkModeCurrently = document.documentElement.classList.contains("dark-theme");
             // Toggle it
             const newDarkModeState = !isDarkModeCurrently;
             
@@ -28,13 +33,9 @@ function initializeDarkMode() {
 
 function applyDarkMode(isDarkMode) {
     if (isDarkMode) {
-        document.body.classList.add("dark-mode");
-        document.querySelector(".nav")?.classList.add("dark-mode");
-        document.querySelector(".hero")?.classList.add("dark-mode");
+        document.documentElement.classList.add("dark-theme");
     } else {
-        document.body.classList.remove("dark-mode");
-        document.querySelector(".nav")?.classList.remove("dark-mode");
-        document.querySelector(".hero")?.classList.remove("dark-mode");
+        document.documentElement.classList.remove("dark-theme");
     }
 }
 
@@ -60,7 +61,7 @@ function updateDarkModeUI(isDarkMode) {
 function initDarkModeOnLoad() {
     const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
     if (darkModeEnabled) {
-        applyDarkMode(true);
+        document.documentElement.classList.add("dark-theme");
         updateDarkModeUI(true);
     } else {
         updateDarkModeUI(false);

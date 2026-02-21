@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>DSA Pattern Hub - Sliding Window</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="nav">
+    <h1>DSA Pattern Hub</h1>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="patterns.html">Patterns</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="about.html">About</a></li>
+    </ul>
+    <button id="darkModeToggle" title="Dark Mode">🌙</button>
+</nav>
+
+<section class="pattern-detail">
+    <div class="pattern-header">
+        <h1>Sliding Window</h1>
+        <div class="difficulty-badge medium">Medium</div>
+    </div>
+
+    <div class="pattern-content">
+        <div class="pattern-section">
+            <h2>Definition</h2>
+            <p>The Sliding Window technique is a method for solving problems that involve arrays or strings by maintaining a "window" of elements and sliding it through the data structure to find a desired result. This approach is particularly useful for problems that require finding subarrays or substrings that meet certain conditions.</p>
+        </div>
+
+        <div class="pattern-section">
+            <h2>When to Use</h2>
+            <ul>
+                <li>Problems involving subarrays or substrings</li>
+                <li>Finding maximum/minimum values in a sliding window</li>
+                <li>Problems requiring contiguous elements</li>
+                <li>Optimization problems where you need to avoid nested loops</li>
+                <li>Strings problems like finding longest substring without repeating characters</li>
+            </ul>
+        </div>
+
+        <div class="pattern-section">
+            <h2>Template</h2>
+            <div class="code-block">
+                <pre><code>// Basic Sliding Window Template
+int left = 0;
+int maxLength = 0;
+
+for (int right = 0; right &lt; n; right++) {
+    // Expand window by adding right element
+    
+    // Shrink window from left while condition is not met
+    while (condition && left &lt;= right) {
+        // Remove left element from window
+        left++;
+    }
+    
+    // Update result with current window
+    maxLength = Math.max(maxLength, right - left + 1);
+}</code></pre>
+            </div>
+            <p><strong>Key Points:</strong></p>
+            <ul>
+                <li><code>left</code> and <code>right</code> pointers define the window boundaries</li>
+                <li>Expand window by moving <code>right</code> pointer</li>
+                <li>Shrink window by moving <code>left</code> pointer when condition is violated</li>
+                <li>Track the maximum/minimum result during the process</li>
+            </ul>
+        </div>
+
+        <div class="pattern-section">
+            <h2>Complexity</h2>
+            <div class="complexity-grid">
+                <div class="complexity-item">
+                    <h3>Time Complexity</h3>
+                    <p><strong>O(n)</strong></p>
+                    <p>Each element is visited at most twice (once by right, once by left)</p>
+                </div>
+                <div class="complexity-item">
+                    <h3>Space Complexity</h3>
+                    <p><strong>O(1)</strong> or <strong>O(k)</strong></p>
+                    <p>Usually O(1) extra space, sometimes O(k) for additional data structures</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="pattern-section">
+            <h2>Example Problems</h2>
+            <ul>
+                <li>Maximum Sum Subarray of Size K</li>
+                <li>Longest Substring Without Repeating Characters</li>
+                <li>Minimum Window Substring</li>
+                <li>Fruit Into Baskets</li>
+                <li>Permutation in String</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="pattern-navigation">
+        <a href="patterns.html" class="nav-button">← Back to Patterns</a>
+        <a href="#" class="nav-button">Practice Problems →</a>
+    </div>
+</section>
+
+<script src="script.js"></script>
+</body>
+</html></content>
+<parameter name="filePath">c:\Users\VICTUS\OneDrive\Desktop\Gouri P\My project\Pattern DSA Platform\pattern-detail.html

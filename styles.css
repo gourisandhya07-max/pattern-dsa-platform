@@ -126,7 +126,7 @@ body {
 }
 
 .nav ul li a {
-    color: white;
+    color: var(--text-white);
     text-decoration: none;
     padding: clamp(0.5rem, 1.5vw, 0.75rem) clamp(0.75rem, 2vw, 1.25rem);
     transition: all 0.3s ease;
@@ -576,7 +576,7 @@ body {
     border-radius: 6px;
     font-size: 12px;
     font-weight: 600;
-    color: white;
+    color: var(--text-white);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -640,6 +640,171 @@ button:focus {
 :root.dark-theme .content {
     background: var(--bg-input);
     border-left-color: var(--button-primary);
+}
+
+/* Pattern Detail Page Styles */
+.pattern-detail {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: clamp(1rem, 4vw, 2rem);
+    line-height: 1.6;
+}
+
+.pattern-header {
+    text-align: center;
+    margin-bottom: clamp(2rem, 5vw, 3rem);
+    position: relative;
+}
+
+.pattern-header h1 {
+    font-size: clamp(2rem, 6vw, 3rem);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.difficulty-badge {
+    position: static;
+    display: inline-block;
+    margin-top: 1rem;
+    transform: none;
+}
+
+.pattern-content {
+    display: grid;
+    gap: clamp(2rem, 4vw, 3rem);
+}
+
+.pattern-section {
+    background: var(--bg-tertiary);
+    padding: clamp(1.5rem, 4vw, 2rem);
+    border-radius: 12px;
+    border: 1px solid var(--border-primary);
+    box-shadow: 0 2px 8px var(--shadow-light);
+}
+
+.pattern-section h2 {
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--button-primary);
+    padding-bottom: 0.5rem;
+}
+
+.pattern-section p {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.pattern-section ul {
+    color: var(--text-primary);
+    padding-left: 1.5rem;
+}
+
+.pattern-section li {
+    margin-bottom: 0.5rem;
+}
+
+.code-block {
+    background: var(--bg-input);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+    font-family: 'Courier New', monospace;
+    font-size: clamp(12px, 2vw, 14px);
+    line-height: 1.4;
+}
+
+.code-block pre {
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.code-block code {
+    color: var(--text-primary);
+}
+
+.complexity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.complexity-item {
+    background: var(--bg-quaternary);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+}
+
+.complexity-item h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.complexity-item p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.complexity-item p strong {
+    color: var(--button-primary);
+    font-weight: 700;
+}
+
+.pattern-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: clamp(2rem, 5vw, 3rem);
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-primary);
+}
+
+.nav-button {
+    padding: clamp(0.75rem, 2vw, 1rem) clamp(1.5rem, 3vw, 2rem);
+    background: var(--button-primary);
+    color: var(--text-white);
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: var(--transition-smooth);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-button:hover {
+    background: var(--button-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-blue);
+}
+
+/* Dark Mode for Pattern Detail */
+:root.dark-theme .pattern-section {
+    background: var(--bg-tertiary);
+    border-color: var(--border-primary);
+    box-shadow: 0 2px 8px var(--shadow-light);
+}
+
+:root.dark-theme .code-block {
+    background: var(--bg-input);
+    border-color: var(--border-primary);
+}
+
+:root.dark-theme .complexity-item {
+    background: var(--bg-quaternary);
+    border-color: var(--border-light);
+}
+
+:root.dark-theme .pattern-navigation {
+    border-top-color: var(--border-primary);
 }
 
 /* Tablet and larger devices */
