@@ -114,7 +114,7 @@ function initializeFavorites() {
         }
     });
     
-    // Add click handlers
+    // Add click handlers with animation feedback
     favoritesBtns.forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -136,6 +136,11 @@ function initializeFavorites() {
                 if (!savedFavorites.includes(patternId)) {
                     savedFavorites.push(patternId);
                 }
+                // Trigger heartbeat animation on favorite
+                btn.style.animation = 'none';
+                setTimeout(() => {
+                    btn.style.animation = 'heartPulse 0.4s ease';
+                }, 10);
             }
             
             localStorage.setItem('favoritePatterns', JSON.stringify(savedFavorites));
@@ -417,7 +422,7 @@ function loadPatternDetail() {
     const patternId = urlParams.get('pattern');
     
     if (!patternId || !patternData[patternId]) {
-        // Default to sliding window or show error
+        // Default to patterns page if pattern not found
         window.location.href = 'patterns.html';
         return;
     }
@@ -434,8 +439,14 @@ function loadPatternDetail() {
         <div class="difficulty-badge ${pattern.difficulty}">${pattern.difficulty.charAt(0).toUpperCase() + pattern.difficulty.slice(1)}</div>
     `;
     
-    // Update content
+    // Update content with enhanced code block formatting
     const content = document.querySelector('.pattern-content');
+    const codeBlockHTML = `
+        <div class="code-block">
+            <pre><code>${escapeHtml(pattern.template)}</code></pre>
+        </div>
+    `;
+    
     content.innerHTML = `
         <div class="pattern-section">
             <h2>Definition</h2>
@@ -455,20 +466,20 @@ function loadPatternDetail() {
         </div>
         
         <div class="pattern-section">
-            <h2>Template</h2>
-            <div class="code-block">
-                <pre><code>${pattern.template}</code></pre>
-            </div>
-            <p><strong>Key Points:</strong></p>
+            <h2>Code Template</h2>
+            <p style="margin-bottom: 1rem; font-weight: 500; color: var(--text-muted);">Starter code structure for this pattern:</p>
+            ${codeBlockHTML}
+            <p style="margin-top: 1rem;"><strong>Key Points:</strong></p>
             <ul>
-                <li>Pointers define the boundaries of the search space</li>
-                <li>Move pointers based on the problem conditions</li>
-                <li>Track the result during the traversal</li>
+                <li>Understand the problem constraints before coding</li>
+                <li>Build intuition with a few small examples</li>
+                <li>Implement step by step and test frequently</li>
+                <li>Optimize after getting a working solution</li>
             </ul>
         </div>
         
         <div class="pattern-section">
-            <h2>Complexity</h2>
+            <h2>Complexity Analysis</h2>
             <div class="complexity-grid">
                 <div class="complexity-item">
                     <h3>Time Complexity</h3>
@@ -485,11 +496,19 @@ function loadPatternDetail() {
         
         <div class="pattern-section">
             <h2>Example Problems</h2>
+            <p style="margin-bottom: 1rem; font-weight: 500; color: var(--text-muted);">Practice these problems to master the pattern:</p>
             <ul>
                 ${pattern.examples.map(example => `<li>${example}</li>`).join('')}
             </ul>
         </div>
     `;
+}
+
+// Helper function to escape HTML in code blocks
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Only run on pattern detail page
@@ -579,7 +598,9 @@ function applyFilters() {
     const savedFavorites = JSON.parse(localStorage.getItem('favoritePatterns')) || [];
     const showOnlyFavorites = window.isShowingOnlyFavorites ? window.isShowingOnlyFavorites() : false;
 
-    cards.forEach(card => {
+    let visibleCount = 0;
+    
+    cards.forEach((card, index) => {
         const text = card.innerText.toLowerCase();
         const difficulty = card.getAttribute("data-difficulty");
         const patternId = card.getAttribute("data-pattern-id");
@@ -589,6 +610,39 @@ function applyFilters() {
         const isFavorited = savedFavorites.includes(patternId);
         const matchesFavoriteFilter = !showOnlyFavorites || isFavorited;
         
-        card.style.display = matchesSearch && matchesDifficulty && matchesFavoriteFilter ? "block" : "none";
+        const shouldShow = matchesSearch && matchesDifficulty && matchesFavoriteFilter;
+        
+        if (shouldShow) {
+            card.style.display = "block";
+            card.style.animation = `slideIn 0.3s ease forwards`;
+            card.style.animationDelay = `${index * 0.05}s`;
+            visibleCount++;
+        } else {
+            card.style.display = "none";
+        }
     });
+
+    // Show/hide "no results" message
+    updateNoResultsMessage(visibleCount);
+}
+
+function updateNoResultsMessage(visibleCount) {
+    const container = document.getElementById("patternsContainer");
+    let noResultsMsg = document.getElementById("noResultsMessage");
+    
+    if (visibleCount === 0) {
+        if (!noResultsMsg) {
+            noResultsMsg = document.createElement("div");
+            noResultsMsg.id = "noResultsMessage";
+            noResultsMsg.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+                    <p style="font-size: 1.1rem; font-weight: 500; margin-bottom: 0.5rem;">No patterns found</p>
+                    <p style="font-size: 0.95rem; opacity: 0.8;">Try adjusting your search or filters</p>
+                </div>
+            `;
+            container.appendChild(noResultsMsg);
+        }
+    } else if (noResultsMsg) {
+        noResultsMsg.remove();
+    }
 }
