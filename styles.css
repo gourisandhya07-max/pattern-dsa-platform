@@ -956,6 +956,396 @@ button:focus {
     border-top-color: var(--border-primary);
 }
 
+/* Practice Page Styles */
+.practice-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: clamp(1rem, 4vw, 2rem);
+    width: 100%;
+    flex: 1;
+}
+
+.practice-header {
+    text-align: center;
+    margin-bottom: clamp(2rem, 5vw, 3rem);
+}
+
+.practice-header h2 {
+    font-size: clamp(2rem, 6vw, 3rem);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    letter-spacing: -1px;
+}
+
+.practice-header p {
+    font-size: clamp(14px, 2.5vw, 16px);
+    color: var(--text-muted);
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
+
+.practice-content {
+    display: grid;
+    gap: clamp(2rem, 4vw, 3rem);
+}
+
+.practice-section {
+    background: var(--bg-tertiary);
+    padding: clamp(1.75rem, 4.5vw, 2.5rem);
+    border-radius: 12px;
+    border: 1px solid var(--border-primary);
+    box-shadow: 0 2px 8px var(--shadow-light);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.practice-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--button-primary), #06b6d4);
+}
+
+.practice-section:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px var(--shadow-medium);
+}
+
+.practice-section h3 {
+    font-size: clamp(1.35rem, 3.5vw, 1.75rem);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: -1.75rem -clamp(1.75rem, 4.5vw, 2.5rem) clamp(1.25rem, 2vw, 1.5rem) -clamp(1.75rem, 4.5vw, 2.5rem);
+    padding: clamp(1rem, 2vw, 1.25rem) clamp(1.75rem, 4.5vw, 2.5rem) clamp(0.75rem, 1.5vw, 1rem);
+    margin-bottom: clamp(1.25rem, 2vw, 1.5rem);
+    background: linear-gradient(135deg, var(--bg-quaternary), transparent);
+    border-bottom: 2px solid var(--button-primary);
+    letter-spacing: -0.3px;
+}
+
+.editor-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(1rem, 3vw, 2rem);
+    background: var(--bg-quaternary);
+    border: 1px solid var(--border-primary);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.editor-panel, .output-panel {
+    display: flex;
+    flex-direction: column;
+    height: 500px;
+    background: var(--bg-quaternary);
+}
+
+.editor-header, .output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: clamp(0.75rem, 2vw, 1rem) clamp(1rem, 2vw, 1.25rem);
+    background: var(--bg-input);
+    border-bottom: 1px solid var(--border-primary);
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: clamp(13px, 2vw, 14px);
+    gap: 1rem;
+}
+
+.editor-title, .output-title {
+    flex: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.run-btn, .clear-btn {
+    padding: clamp(0.5rem, 1.5vw, 0.625rem) clamp(1rem, 2vw, 1.25rem);
+    background: var(--button-primary);
+    color: var(--text-white);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: clamp(12px, 1.8vw, 13px);
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    min-height: 36px;
+}
+
+.run-btn:hover, .clear-btn:hover {
+    background: var(--button-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-blue);
+}
+
+.code-input {
+    flex: 1;
+    padding: clamp(1rem, 2vw, 1.25rem);
+    border: none;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: clamp(12px, 1.8vw, 14px);
+    line-height: 1.6;
+    resize: none;
+    overflow: auto;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.code-input:focus {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--button-primary), 0 0 12px rgba(59, 130, 246, 0.1);
+}
+
+.code-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+.output-area {
+    flex: 1;
+    padding: clamp(1rem, 2vw, 1.25rem);
+    background: var(--bg-input);
+    overflow: auto;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: clamp(12px, 1.8vw, 14px);
+    line-height: 1.6;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    border-top: 1px solid var(--border-primary);
+}
+
+.output-area:empty::before {
+    content: 'Output will appear here...';
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+.external-resources {
+    margin-top: 1rem;
+}
+
+.resource-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: clamp(1.25rem, 3vw, 1.75rem);
+    margin-top: 1.5rem;
+}
+
+.resource-card {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(1.5rem, 3vw, 2rem);
+    background: linear-gradient(135deg, var(--bg-quaternary), var(--bg-input));
+    border: 2px solid var(--border-primary);
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    min-height: 200px;
+}
+
+.resource-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--button-primary), #06b6d4);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.resource-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: var(--button-primary);
+    box-shadow: 0 12px 32px var(--shadow-medium), 0 0 20px rgba(59, 130, 246, 0.15);
+}
+
+.resource-card:hover::before {
+    opacity: 1;
+}
+
+.resource-card h4 {
+    margin: 0 0 0.75rem 0;
+    font-size: clamp(15px, 2.5vw, 17px);
+    font-weight: 700;
+    color: var(--button-primary);
+    letter-spacing: -0.2px;
+}
+
+.resource-card p {
+    margin: 0 0 1.5rem 0;
+    flex: 1;
+    font-size: clamp(13px, 2vw, 14px);
+    line-height: 1.6;
+    color: var(--text-muted);
+}
+
+.resource-link {
+    font-weight: 600;
+    color: var(--button-primary);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-block;
+    margin-top: auto;
+}
+
+.resource-card:hover .resource-link {
+    transform: translateX(4px);
+    color: var(--button-hover);
+}
+
+.practice-tips {
+    background: linear-gradient(135deg, var(--bg-input), var(--bg-quaternary));
+    border: 2px solid var(--button-primary);
+}
+
+.practice-tips::before {
+    content: '';
+    background: none;
+}
+
+.practice-tips h3 {
+    background: linear-gradient(135deg, var(--button-primary), #06b6d4);
+    color: var(--text-white);
+    margin: -1.75rem -clamp(1.75rem, 4.5vw, 2.5rem) clamp(1.25rem, 2vw, 1.5rem) -clamp(1.75rem, 4.5vw, 2.5rem);
+    padding: clamp(1rem, 2vw, 1.25rem) clamp(1.75rem, 4.5vw, 2.5rem) clamp(0.75rem, 1.5vw, 1rem);
+    border-bottom: none;
+}
+
+.practice-tips ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.practice-tips li {
+    padding: clamp(0.75rem, 1.5vw, 1rem) 0;
+    border-bottom: 1px solid var(--border-light);
+    font-size: clamp(14px, 2vw, 15px);
+    line-height: 1.7;
+    color: var(--text-primary);
+}
+
+.practice-tips li:last-child {
+    border-bottom: none;
+}
+
+.practice-tips strong {
+    color: var(--button-primary);
+    font-weight: 700;
+}
+
+.back-link {
+    text-align: center;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+
+.back-link a {
+    padding: clamp(0.75rem, 2vw, 1rem) clamp(1.5rem, 3vw, 2rem);
+    background: var(--button-primary);
+    color: var(--text-white);
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: clamp(14px, 2vw, 16px);
+    transition: var(--transition-smooth);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+}
+
+.back-link a:hover {
+    background: var(--button-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-blue);
+}
+
+/* Dark mode for practice */
+:root.dark-theme .practice-section {
+    background: var(--bg-tertiary);
+    border-color: var(--border-primary);
+}
+
+:root.dark-theme .editor-wrapper {
+    background: var(--bg-quaternary);
+    border-color: var(--border-primary);
+}
+
+:root.dark-theme .editor-panel, :root.dark-theme .output-panel {
+    background: var(--bg-quaternary);
+}
+
+:root.dark-theme .code-input, :root.dark-theme .output-area {
+    background: var(--bg-input);
+    color: #e2e8f0;
+}
+
+:root.dark-theme .resource-card {
+    background: linear-gradient(135deg, var(--bg-quaternary), var(--bg-input));
+    border-color: var(--border-primary);
+}
+
+/* Responsive practice styles */
+@media (max-width: 1024px) {
+    .editor-wrapper {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+
+    .editor-panel, .output-panel {
+        height: 300px;
+    }
+
+    .resource-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .practice-container {
+        padding: clamp(0.75rem, 3vw, 1.5rem);
+    }
+
+    .practice-header h2 {
+        font-size: clamp(1.75rem, 5vw, 2.5rem);
+        margin-bottom: 0.75rem;
+    }
+
+    .practice-header p {
+        font-size: clamp(13px, 2vw, 14px);
+    }
+
+    .practice-section {
+        padding: clamp(1.25rem, 3vw, 1.75rem);
+    }
+
+    .editor-wrapper {
+        border-radius: 8px;
+        gap: clamp(0.75rem, 2vw, 1.25rem);
+    }
+
+    .resource-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Animations */
 @keyframes slideIn {
     from {

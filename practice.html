@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>DSA Pattern Hub - Practice</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="nav">
+    <h1>DSA Pattern Hub</h1>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="patterns.html">Patterns</a></li>
+        <li><a href="practice.html">Practice</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="about.html">About</a></li>
+    </ul>
+    <button id="darkModeToggle" title="Dark Mode">🌙</button>
+</nav>
+
+<section class="practice-container">
+    <div class="practice-header">
+        <h2>Practice Coding Problems</h2>
+        <p>Apply your pattern knowledge by coding practice problems. Use the editor below for quick testing, or access a full-featured Python environment using the links provided.</p>
+    </div>
+
+    <div class="practice-content">
+        <div class="practice-section">
+            <h3>Quick Practice Editor</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">Write and test your code directly in your browser. For a full development experience, use the external Python compiler.</p>
+            
+            <div class="editor-wrapper">
+                <div class="editor-panel">
+                    <div class="editor-header">
+                        <span class="editor-title">Code Editor</span>
+                        <button id="runButton" class="run-btn">▶ Run Code</button>
+                    </div>
+                    <textarea id="codeInput" class="code-input" placeholder="# Write your Python code here&#10;def solution(arr):&#10;    return arr&#10;&#10;# Test your code&#10;print(solution([1, 2, 3]))"></textarea>
+                </div>
+
+                <div class="output-panel">
+                    <div class="output-header">
+                        <span class="output-title">Output</span>
+                        <button id="clearOutput" class="clear-btn">Clear</button>
+                    </div>
+                    <div id="output" class="output-area"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="practice-section external-resources">
+            <h3>📝 External Python Compiler</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">For a full-featured coding environment with advanced features, use one of these reliable online Python compilers:</p>
+            
+            <div class="resource-grid">
+                <a href="https://www.repl.it/languages/python" target="_blank" rel="noopener noreferrer" class="resource-card">
+                    <h4>Repl.it (Replit)</h4>
+                    <p>Powerful online IDE with Python support, collaboration features, and package management. Perfect for real-world coding.</p>
+                    <span class="resource-link">→ Visit Repl.it</span>
+                </a>
+
+                <a href="https://www.programiz.com/python-programming/online-compiler/" target="_blank" rel="noopener noreferrer" class="resource-card">
+                    <h4>Programiz Online Compiler</h4>
+                    <p>Clean and simple Python environment with built-in examples and tutorials. Great for beginners and quick testing.</p>
+                    <span class="resource-link">→ Visit Programiz</span>
+                </a>
+
+                <a href="https://jdoodle.com/python3-online-compiler/" target="_blank" rel="noopener noreferrer" class="resource-card">
+                    <h4>JDoodle Compiler</h4>
+                    <p>Lightweight online compiler supporting Python and multiple other languages. Fast execution and minimal setup.</p>
+                    <span class="resource-link">→ Visit JDoodle</span>
+                </a>
+
+                <a href="https://www.onlinegdb.com/online_python_compiler" target="_blank" rel="noopener noreferrer" class="resource-card">
+                    <h4>OnlineGDB</h4>
+                    <p>Feature-rich debugger and compiler for Python with breakpoints and watch variables for advanced debugging.</p>
+                    <span class="resource-link">→ Visit OnlineGDB</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="practice-section practice-tips">
+            <h3>💡 Practice Tips</h3>
+            <ul>
+                <li><strong>Understand the Pattern:</strong> Review the pattern definition and template before attempting problems</li>
+                <li><strong>Start Simple:</strong> Begin with easy problems to build confidence with the pattern</li>
+                <li><strong>Trace Through Examples:</strong> Work through examples manually to understand the logic</li>
+                <li><strong>Implement From Scratch:</strong> Try coding without looking at the template first</li>
+                <li><strong>Optimize Later:</strong> Get a working solution first, then optimize for time/space complexity</li>
+                <li><strong>Practice Regularly:</strong> Consistent practice is key to mastering DSA patterns</li>
+            </ul>
+        </div>
+
+        <div class="practice-section back-link">
+            <a href="patterns.html" class="nav-button">← Back to Patterns</a>
+        </div>
+    </div>
+</section>
+
+<script src="script.js"></script>
+</body>
+</html>

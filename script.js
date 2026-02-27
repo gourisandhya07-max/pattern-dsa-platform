@@ -413,6 +413,105 @@ int size = queue.size();`,
             'Web Crawler URL Queue',
             'Sliding Window Maximum'
         ]
+    },
+    'prefix-sum': {
+        title: 'Prefix Sum',
+        difficulty: 'easy',
+        definition: 'The Prefix Sum technique precomputes cumulative sums of array elements to enable quick range sum queries. It involves creating an auxiliary array where each element represents the sum of all elements up to that position.',
+        intuition: 'Rather than recalculating sums for ranges repeatedly, we precompute them once. This trades O(n) space for significant time savings when answering multiple range queries.',
+        usage: [
+            'Range sum queries on static arrays',
+            'Finding subarrays with a given sum',
+            'Problems involving cumulative totals',
+            'Image processing (2D prefix sums)',
+            'Counting problems with constraints',
+            'Optimization problems with sum constraints'
+        ],
+        template: `// Prefix Sum Template
+int[] prefix = new int[n + 1];
+prefix[0] = 0;
+
+// Build prefix sum array
+for (int i = 0; i < n; i++) {
+    prefix[i + 1] = prefix[i] + arr[i];
+}
+
+// Query range sum from index l to r (inclusive)
+int rangeSum(int l, int r) {
+    return prefix[r + 1] - prefix[l];
+}
+
+// 2D Prefix Sum
+int[][] prefix2D = new int[m + 1][n + 1];
+for (int i = 1; i <= m; i++) {
+    for (int j = 1; j <= n; j++) {
+        prefix2D[i][j] = matrix[i-1][j-1] + prefix2D[i-1][j] 
+                       + prefix2D[i][j-1] - prefix2D[i-1][j-1];
+    }
+}`,
+        timeComplexity: 'O(n) preprocessing + O(1) per query',
+        spaceComplexity: 'O(n)',
+        timeExplanation: 'Preprocessing takes O(n) time, but each range sum query is answered in O(1) time',
+        spaceExplanation: 'O(n) for the prefix sum array',
+        examples: [
+            'Range Sum Query - Immutable',
+            'Subarray Sum Equals K',
+            'Contiguous Array',
+            'Product of Array Except Self',
+            'Maximum Subarray',
+            'Continuous Subarray Sum'
+        ]
+    },
+    'backtracking': {
+        title: 'Backtracking',
+        difficulty: 'medium',
+        definition: 'Backtracking is a systematic exploration technique that builds solutions incrementally and abandons a candidate path as soon as it determines the path cannot lead to a valid solution. It uses recursion to explore all possible combinations and prunes branches that violate constraints.',
+        intuition: 'Rather than exploring all combinations exhaustively, backtracking makes decisions at each step and backtracks (undoes the decision) when it encounters a constraint violation or dead end. This pruning significantly reduces the search space.',
+        usage: [
+            'Permutation and combination problems',
+            'N-Queens and similar constraint satisfaction problems',
+            'Generating all valid parentheses/expressions',
+            'Sudoku solver',
+            'Word ladder and path problems',
+            'Subset and partition problems'
+        ],
+        template: `// Backtracking Template
+void backtrack(parameters) {
+    // Base case: solution found or invalid
+    if (isComplete(state)) {
+        results.add(new ArrayList<>(currentSolution));
+        return;
+    }
+    
+    // Try all candidates
+    for (Candidate candidate : getCandidates(state)) {
+        // Check if candidate is valid
+        if (isValid(candidate, state)) {
+            // Make choice
+            currentSolution.add(candidate);
+            state.update(candidate);
+            
+            // Explore further
+            backtrack(state);
+            
+            // Undo choice (backtrack)
+            currentSolution.remove(currentSolution.size() - 1);
+            state.revert(candidate);
+        }
+    }
+}`,
+        timeComplexity: 'O(b^d) worst case',
+        spaceComplexity: 'O(d)',
+        timeExplanation: 'b is the branching factor and d is the depth; can be significantly reduced with pruning',
+        spaceExplanation: 'O(d) for the recursion call stack and current solution path',
+        examples: [
+            'Permutations',
+            'Combinations',
+            'N-Queens Problem',
+            'Generate Parentheses',
+            'Sudoku Solver',
+            'Word Search'
+        ]
     }
 };
 
@@ -645,4 +744,110 @@ function updateNoResultsMessage(visibleCount) {
     } else if (noResultsMsg) {
         noResultsMsg.remove();
     }
+}
+
+// Practice Editor Functionality
+function initializePracticeEditor() {
+    const runButton = document.getElementById('runButton');
+    const clearButton = document.getElementById('clearOutput');
+    const codeInput = document.getElementById('codeInput');
+    const outputArea = document.getElementById('output');
+    
+    if (runButton && codeInput && outputArea) {
+        runButton.addEventListener('click', function() {
+            const code = codeInput.value;
+            if (!code.trim()) {
+                outputArea.innerHTML = '<span style="color: var(--text-muted); opacity: 0.7;">Please enter some code to run</span>';
+                return;
+            }
+            
+            runCode(code, outputArea);
+        });
+        
+        // Allow Ctrl+Enter or Cmd+Enter to run code
+        codeInput.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                runButton.click();
+            }
+        });
+    }
+    
+    if (clearButton && outputArea) {
+        clearButton.addEventListener('click', function() {
+            outputArea.innerHTML = '';
+        });
+    }
+}
+
+// Execute Python code using Pyodide (WebAssembly Python)
+async function runCode(code, outputArea) {
+    const runButton = document.querySelector('#runButton');
+    const originalText = runButton.textContent;
+    
+    try {
+        runButton.disabled = true;
+        runButton.textContent = '⏳ Running...';
+        outputArea.innerHTML = '<span style="color: var(--text-muted); opacity: 0.7;">Executing code...</span>';
+        
+        // Check if Pyodide is already loaded
+        if (typeof globalThis.pyodide === 'undefined') {
+            // Load Pyodide for the first time
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js';
+            script.onload = async () => {
+                globalThis.pyodide = await globalThis.loadPyodide();
+                await executeCode(code, outputArea);
+                runButton.disabled = false;
+                runButton.textContent = originalText;
+            };
+            script.onerror = () => {
+                outputArea.innerHTML = '<span style="color: #ef4444;">Error loading Python environment</span>';
+                runButton.disabled = false;
+                runButton.textContent = originalText;
+            };
+            document.head.appendChild(script);
+        } else {
+            await executeCode(code, outputArea);
+            runButton.disabled = false;
+            runButton.textContent = originalText;
+        }
+    } catch (error) {
+        outputArea.innerHTML = `<span style="color: #ef4444;">Error: ${error.message}</span>`;
+        runButton.disabled = false;
+        runButton.textContent = originalText;
+    }
+}
+
+async function executeCode(code, outputArea) {
+    try {
+        const pyodide = globalThis.pyodide;
+        const namespace = pyodide.globals.get('dict')();
+        
+        // Capture print output
+        let output = '';
+        const printFunc = (...args) => {
+            output += args.join(' ') + '\n';
+        };
+        pyodide.globals.set('print', printFunc);
+        
+        // Run the code
+        const result = await pyodide.runPythonAsync(code, { globals: namespace });
+        
+        if (output.trim()) {
+            outputArea.innerHTML = `<span style="color: var(--text-primary); white-space: pre-wrap;">${escapeHtml(output)}</span>`;
+        } else if (result !== globalThis.pyodide.undefined) {
+            outputArea.innerHTML = `<span style="color: var(--text-primary);">${escapeHtml(String(result))}</span>`;
+        } else {
+            outputArea.innerHTML = '<span style="color: var(--text-muted); opacity: 0.7;">Code executed successfully (no output)</span>';
+        }
+    } catch (error) {
+        const errorMsg = error.message || String(error);
+        outputArea.innerHTML = `<span style="color: #ef4444; white-space: pre-wrap;">Error: ${escapeHtml(errorMsg)}</span>`;
+    }
+}
+
+// Initialize practice editor when on practice page
+if (window.location.pathname.includes("practice.html")) {
+    document.addEventListener('DOMContentLoaded', initializePracticeEditor);
 }
