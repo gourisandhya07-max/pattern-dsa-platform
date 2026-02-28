@@ -83,17 +83,73 @@ function highlightActivePage() {
     });
 }
 
-// Call on page load
-document.addEventListener('DOMContentLoaded', function() {
+// Call on page load for all common initialization
+function commonInit() {
     initDarkModeOnLoad();
     initializeDarkMode();
     highlightActivePage();
-});
+    runPageSpecificInit();
+}
 
-// Also call immediately in case DOM is already ready
-initDarkModeOnLoad();
-initializeDarkMode();
-highlightActivePage();
+// Setup listener, but only call when DOM is ready _and_ after all definitions (including patternData) have been parsed.
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', commonInit);
+} else {
+    // already ready, run directly (script is loaded at bottom so patternData should be initialized by now)
+    commonInit();
+}
+
+// Page-specific initialization
+function runPageSpecificInit() {
+    const path = window.location.pathname;
+    if (path.includes('patterns.html')) {
+        renderPatterns();
+        // search/filter event listeners already wired in renderPatterns
+        initializeFavoritesFilter();
+    }
+    if (path.includes('index.html') || path === '' || path === '/') {
+        initializeHomeStats();
+    }
+}
+
+// dynamically build pattern cards from patternData
+function renderPatterns() {
+    const container = document.getElementById('patternsContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    Object.keys(patternData).forEach((id) => {
+        const p = patternData[id];
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.setAttribute('data-difficulty', p.difficulty);
+        card.setAttribute('data-pattern-id', id);
+        card.innerHTML = `
+            <div class="card-header">
+                <h2>${p.title}</h2>
+                <button class="favorite-btn" title="Add to Favorites">♡</button>
+            </div>
+            <div class="difficulty-badge ${p.difficulty}">${p.difficulty.charAt(0).toUpperCase() + p.difficulty.slice(1)}</div>
+            <p><strong>When to Use:</strong> ${p.usage[0] || ''}</p>
+            <p><strong>Time Complexity:</strong> ${p.timeComplexity}</p>
+            <a href="pattern-detail.html?pattern=${id}" class="toggle-btn" style="display: inline-block; text-decoration: none; color: inherit;">View Details</a>
+        `;
+        container.appendChild(card);
+    });
+    // attach favorite button handlers and count
+    initializeFavorites();
+    updateFavoriteCount();
+    // wire filters & search again just in case
+    applyFilters();
+}
+
+// Home page statistic updater
+function initializeHomeStats() {
+    const countEl = document.getElementById('patternCount');
+    if (countEl) {
+        const total = Object.keys(patternData).length;
+        countEl.textContent = total;
+    }
+}
 
 function toggleContent(button) {
     const content = button.nextElementSibling;
@@ -822,22 +878,37 @@ async function runCode(code, outputArea) {
 async function executeCode(code, outputArea) {
     try {
         const pyodide = globalThis.pyodide;
-        const namespace = pyodide.globals.get('dict')();
-        
-        // Capture print output
-        let output = '';
-        const printFunc = (...args) => {
-            output += args.join(' ') + '\n';
-        };
-        pyodide.globals.set('print', printFunc);
-        
-        // Run the code
-        const result = await pyodide.runPythonAsync(code, { globals: namespace });
-        
-        if (output.trim()) {
-            outputArea.innerHTML = `<span style="color: var(--text-primary); white-space: pre-wrap;">${escapeHtml(output)}</span>`;
-        } else if (result !== globalThis.pyodide.undefined) {
-            outputArea.innerHTML = `<span style="color: var(--text-primary);">${escapeHtml(String(result))}</span>`;
+
+        // Wrap the user's code to capture stdout/ stderr and provide a simple input implementation
+        const wrapped = `
+import sys, io, js
+sys.stdout = io.StringIO()
+sys.stderr = io.StringIO()
+
+def input(prompt=''):
+    return js.prompt(prompt)
+
+${code}
+
+__output = sys.stdout.getvalue()
+__error = sys.stderr.getvalue()
+`;
+        await pyodide.runPythonAsync(wrapped);
+
+        // Retrieve captured output
+        let resultOutput = '';
+        let resultError = '';
+        try {
+            resultOutput = pyodide.globals.get('__output').toString();
+            resultError = pyodide.globals.get('__error').toString();
+        } catch (e) {
+            // ignore if not found
+        }
+
+        if (resultError && resultError.trim()) {
+            outputArea.innerHTML = `<span style="color: #ef4444; white-space: pre-wrap;">${escapeHtml(resultError)}</span>`;
+        } else if (resultOutput && resultOutput.trim()) {
+            outputArea.innerHTML = `<span style="color: var(--text-primary); white-space: pre-wrap;">${escapeHtml(resultOutput)}</span>`;
         } else {
             outputArea.innerHTML = '<span style="color: var(--text-muted); opacity: 0.7;">Code executed successfully (no output)</span>';
         }
@@ -847,7 +918,5 @@ async function executeCode(code, outputArea) {
     }
 }
 
-// Initialize practice editor when on practice page
-if (window.location.pathname.includes("practice.html")) {
-    document.addEventListener('DOMContentLoaded', initializePracticeEditor);
-}
+// Initialize practice editor whenever the page loads (function will only attach listeners if elements exist)
+document.addEventListener('DOMContentLoaded', initializePracticeEditor);

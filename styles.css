@@ -1109,6 +1109,26 @@ button:focus {
     opacity: 0.7;
 }
 
+/* Hero/Stats section on home */
+.stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    padding: clamp(1rem,4vw,2rem);
+    background: var(--bg-quaternary);
+    flex-wrap: wrap;
+    text-align: center;
+}
+.stats .stat h3 {
+    margin: 0 0 0.5rem;
+    font-size: clamp(1rem,2vw,1.25rem);
+}
+.stats .stat p {
+    margin: 0;
+    font-size: clamp(1.5rem,3vw,2rem);
+    font-weight: 600;
+}
+
 .output-area {
     flex: 1;
     padding: clamp(1rem, 2vw, 1.25rem);
@@ -1124,7 +1144,7 @@ button:focus {
 }
 
 .output-area:empty::before {
-    content: 'Output will appear here...';
+    content: 'Terminal output will appear here...';
     color: var(--text-muted);
     opacity: 0.6;
 }
@@ -1674,4 +1694,22 @@ button:focus {
     .blog h2, .about h2 {
         font-size: 18px;
     }
+}
+
+/* footer at bottom of document flow (visible after scrolling) */
+.site-footer {
+    background: var(--bg-secondary);
+    color: var(--text-white);
+    padding: clamp(1rem,3vw,1.5rem);
+    text-align: center;
+    font-size: clamp(0.75rem,2vw,0.875rem);
+    margin-top: auto;
+}
+.site-footer nav a {
+    color: var(--text-white);
+    text-decoration: none;
+    margin: 0 0.25rem;
+}
+.site-footer nav a:hover {
+    text-decoration: underline;
 }
