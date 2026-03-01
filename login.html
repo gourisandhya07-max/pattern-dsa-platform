@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>DSA Pattern Hub - Login</title>
+    <meta name="description" content="Login or register to access the DSA Pattern Hub.">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="nav">
+    <h1>DSA Pattern Hub</h1>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="patterns.html">Patterns</a></li>
+        <li><a href="practice.html">Practice</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="about.html">About</a></li>
+    </ul>
+    <button id="darkModeToggle" title="Dark Mode">🌙</button>
+</nav>
+
+<main class="auth-section">
+    <h2>Login / Register</h2>
+    <form id="authForm">
+        <input type="text" id="username" placeholder="Username" required />
+        <input type="password" id="password" placeholder="Password" required />
+        <div class="buttons">
+            <button id="loginBtn">Login</button>
+            <button id="registerBtn">Register</button>
+        </div>
+    </form>
+</main>
+
+<script src="script.js"></script>
+
+<footer class="site-footer">
+    <nav>
+        <a href="index.html">Home</a> |
+        <a href="patterns.html">Patterns</a> |
+        <a href="practice.html">Practice</a> |
+        <a href="blog.html">Blog</a> |
+        <a href="about.html">About</a>
+    </nav>
+</footer>
+
+</body>
+</html>

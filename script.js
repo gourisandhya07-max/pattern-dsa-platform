@@ -1,6 +1,164 @@
 // Dark Mode Management with localStorage
 let darkModeInitialized = false;
 
+// API base URL (backend runs separately on localhost:3000)
+const apiBase = 'http://localhost:3000';
+
+// ---------- Authentication & Navigation Helpers ----------
+function checkAuthentication() {
+    const username = localStorage.getItem('username');
+    const path = window.location.pathname.split('/').pop();
+    // allow access to login page without a user
+    if (!username && path !== 'login.html') {
+        window.location.href = 'login.html';
+    }
+}
+
+function updateNavForAuth() {
+    const nav = document.querySelector('.nav');
+    const navUl = document.querySelector('.nav ul');
+    if (!navUl || !nav) return;
+    const username = localStorage.getItem('username');
+
+    // greeting
+    let greetEl = nav.querySelector('#userGreeting');
+    if (username) {
+        if (!greetEl) {
+            greetEl = document.createElement('span');
+            greetEl.id = 'userGreeting';
+            greetEl.style.marginLeft = '1rem';
+            greetEl.style.fontWeight = '500';
+            nav.insertBefore(greetEl, navUl);
+        }
+        greetEl.textContent = `Hello, ${username}`;
+    } else if (greetEl) {
+        greetEl.remove();
+    }
+
+    // ensure leaderboard link exists
+    if (!navUl.querySelector('a[href="leaderboard.html"]')) {
+        const li = document.createElement('li');
+        li.innerHTML = '<a href="leaderboard.html">Leaderboard</a>';
+        navUl.appendChild(li);
+    }
+
+    // add login/logout links depending on state
+    if (username) {
+        // remove any existing login link
+        const loginLink = navUl.querySelector('a[href="login.html"]');
+        if (loginLink) {
+            loginLink.closest('li').remove();
+        }
+        if (!navUl.querySelector('#logoutLink')) {
+            const li = document.createElement('li');
+            li.innerHTML = '<a href="#" id="logoutLink">Logout</a>';
+            navUl.appendChild(li);
+            li.querySelector('#logoutLink').addEventListener('click', e => {
+                e.preventDefault();
+                localStorage.removeItem('username');
+                window.location.href = 'login.html';
+            });
+        }
+    } else {
+        // not logged in
+        if (!navUl.querySelector('a[href="login.html"]')) {
+            const li = document.createElement('li');
+            li.innerHTML = '<a href="login.html">Login</a>';
+            navUl.appendChild(li);
+        }
+        const logoutLink = navUl.querySelector('#logoutLink');
+        if (logoutLink) {
+            logoutLink.closest('li').remove();
+        }
+    }
+}
+
+function sendProgress(progress) {
+    const username = localStorage.getItem('username');
+    if (!username) return;
+    fetch(`${apiBase}/updateProgress`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username, progress})
+    }).catch(err => console.warn('progress update failed', err));
+}
+
+function initLoginPage() {
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const userInput = document.getElementById('username');
+    const passInput = document.getElementById('password');
+
+    if (loginBtn) {
+        loginBtn.addEventListener('click', async e => {
+            e.preventDefault();
+            const username = userInput.value.trim();
+            const password = passInput.value;
+            if (!username || !password) return alert('Enter credentials');
+            try {
+                const res = await fetch(`${apiBase}/login`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username, password})
+                });
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem('username', username);
+                    window.location.href = 'index.html';
+                } else {
+                    alert(data.message || 'Login failed');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Login request failed');
+            }
+        });
+    }
+
+    if (registerBtn) {
+        registerBtn.addEventListener('click', async e => {
+            e.preventDefault();
+            const username = userInput.value.trim();
+            const password = passInput.value;
+            if (!username || !password) return alert('Enter credentials');
+            try {
+                const res = await fetch(`${apiBase}/register`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username, password})
+                });
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem('username', username);
+                    window.location.href = 'index.html';
+                } else {
+                    alert(data.message || 'Registration failed');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Registration request failed');
+            }
+        });
+    }
+}
+
+function loadLeaderboard() {
+    const list = document.getElementById('leaderboardList');
+    if (!list) return;
+    fetch(`${apiBase}/leaderboard`)
+        .then(r => r.json())
+        .then(data => {
+            list.innerHTML = '';
+            data.forEach(u => {
+                const li = document.createElement('li');
+                li.textContent = `${u.username} – ${u.progress}%`;
+                list.appendChild(li);
+            });
+        })
+        .catch(err => console.warn('Leaderboard load failed', err));
+}
+
+
 function initializeDarkMode() {
     if (darkModeInitialized) return;
     darkModeInitialized = true;
@@ -88,6 +246,8 @@ function commonInit() {
     initDarkModeOnLoad();
     initializeDarkMode();
     highlightActivePage();
+    checkAuthentication();            // redirect if not logged in
+    updateNavForAuth();               // adjust nav links based on auth state
     runPageSpecificInit();
 }
 
@@ -101,14 +261,32 @@ if (document.readyState === 'loading') {
 
 // Page-specific initialization
 function runPageSpecificInit() {
-    const path = window.location.pathname;
+    const path = window.location.pathname.split('/').pop() || 'index.html';
+
+    if (path === 'login.html') {
+        initLoginPage();
+        return; // nothing else to do on login page
+    }
+
     if (path.includes('patterns.html')) {
         renderPatterns();
         // search/filter event listeners already wired in renderPatterns
         initializeFavoritesFilter();
+        sendProgress(30);
     }
     if (path.includes('index.html') || path === '' || path === '/') {
         initializeHomeStats();
+        sendProgress(10);
+    }
+    if (path.includes('pattern-detail.html')) {
+        sendProgress(50);
+    }
+    if (path.includes('practice.html')) {
+        sendProgress(70);
+    }
+    if (path.includes('leaderboard.html')) {
+        loadLeaderboard();
+        sendProgress(90);
     }
 }
 
@@ -207,6 +385,7 @@ function initializeFavorites() {
     
     updateFavoriteCount();
 }
+
 
 // Pattern Data Structure
 const patternData = {
@@ -920,3 +1099,24 @@ __error = sys.stderr.getvalue()
 
 // Initialize practice editor whenever the page loads (function will only attach listeners if elements exist)
 document.addEventListener('DOMContentLoaded', initializePracticeEditor);
+const registerBtn = document.getElementById("registerBtn");
+
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  fetch("http://localhost:3000/register", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ username, password })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert("User registered successfully 🚀");
+    console.log(data);
+  })
+  .catch(error => {
+    console.error("Error:", error);
+  });
+;
