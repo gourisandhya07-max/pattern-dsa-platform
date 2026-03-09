@@ -7,80 +7,94 @@ const apiBase = 'http://localhost:3000';
 // ---------- Authentication & Navigation Helpers ----------
 function checkAuthentication() {
     const username = localStorage.getItem('username');
-    const path = window.location.pathname.split('/').pop();
-    // allow access to login page without a user
-    if (!username && path !== 'login.html') {
+    const path = window.location.pathname.toLowerCase();
+
+    // 1. If we have a username, they are logged in. Stop here.
+    if (username) return;
+
+    // 2. Check if we are ALREADY on the login page to prevent a loop.
+    // This looks for "login.html" OR just a "/" (common for home/login pages).
+    const isAtLogin = path.endsWith('login.html') || path === '/' || path === '';
+
+    // 3. ONLY redirect if they are NOT logged in AND NOT on the login page.
+    if (!isAtLogin) {
+        console.log("Redirecting to login...");
         window.location.href = 'login.html';
     }
 }
 
+
 function updateNavForAuth() {
     const nav = document.querySelector('.nav');
-    const navUl = document.querySelector('.nav ul');
-    if (!navUl || !nav) return;
+    const navUl = nav?.querySelector('ul');
+    if (!nav || !navUl) return;
+
     const username = localStorage.getItem('username');
 
-    // greeting
-    let greetEl = nav.querySelector('#userGreeting');
-    if (username) {
-        if (!greetEl) {
-            greetEl = document.createElement('span');
-            greetEl.id = 'userGreeting';
-            greetEl.style.marginLeft = '1rem';
-            greetEl.style.fontWeight = '500';
-            nav.insertBefore(greetEl, navUl);
-        }
-        greetEl.textContent = `Hello, ${username}`;
-    } else if (greetEl) {
-        greetEl.remove();
-    }
+// greeting (right next to title)
+const brand = nav.querySelector('.nav-brand') || nav;
 
-    // ensure leaderboard link exists
+let greetEl = nav.querySelector('#userGreeting');
+if (!greetEl) {
+    greetEl = document.createElement('span');
+    greetEl.id = 'userGreeting';
+
+    const titleEl = brand.querySelector('h1');
+    if (titleEl) titleEl.insertAdjacentElement('afterend', greetEl);
+    else brand.insertBefore(greetEl, navUl);
+}
+
+greetEl.textContent = username ? `Hello, ${username}` : '';
+
+    // --- Ensure Leaderboard link exists ---
     if (!navUl.querySelector('a[href="leaderboard.html"]')) {
         const li = document.createElement('li');
-        li.innerHTML = '<a href="leaderboard.html">Leaderboard</a>';
+        const a = document.createElement('a');
+        a.href = 'leaderboard.html';
+        a.textContent = 'Leaderboard';
+        li.appendChild(a);
         navUl.appendChild(li);
     }
 
-    // add login/logout links depending on state
-    if (username) {
-        // remove any existing login link
-        const loginLink = navUl.querySelector('a[href="login.html"]');
-        if (loginLink) {
-            loginLink.closest('li').remove();
-        }
-        if (!navUl.querySelector('#logoutLink')) {
-            const li = document.createElement('li');
-            li.innerHTML = '<a href="#" id="logoutLink">Logout</a>';
-            navUl.appendChild(li);
-            li.querySelector('#logoutLink').addEventListener('click', e => {
-                e.preventDefault();
-                localStorage.removeItem('username');
-                window.location.href = 'login.html';
-            });
-        }
-    } else {
-        // not logged in
-        if (!navUl.querySelector('a[href="login.html"]')) {
-            const li = document.createElement('li');
-            li.innerHTML = '<a href="login.html">Login</a>';
-            navUl.appendChild(li);
-        }
-        const logoutLink = navUl.querySelector('#logoutLink');
-        if (logoutLink) {
-            logoutLink.closest('li').remove();
-        }
-    }
-}
+    // --- Remove existing login/logout links ---
+    navUl.querySelectorAll('a[href="login.html"], #logoutLink').forEach(el => el.closest('li').remove());
 
+    // --- Add login/logout based on auth ---
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    if (username) {
+        a.href = '#';
+        a.id = 'logoutLink';
+        a.textContent = 'Logout';
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            localStorage.removeItem('username');
+            if (window.location.pathname.endsWith('login.html')) return;
+            window.location.href = 'login.html';
+        });
+    } else {
+        a.href = 'login.html';
+        a.textContent = 'Login';
+    }
+    li.appendChild(a);
+    navUl.appendChild(li);
+}
 function sendProgress(progress) {
-    const username = localStorage.getItem('username');
-    if (!username) return;
-    fetch(`${apiBase}/updateProgress`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({username, progress})
-    }).catch(err => console.warn('progress update failed', err));
+  const username = localStorage.getItem('username');
+  if (!username) return;
+
+  // Don't resend same progress on every page reload
+  const key = `progressSent:${username}`;
+  const lastSent = Number(localStorage.getItem(key) || 0);
+  if (progress <= lastSent) return;
+
+  localStorage.setItem(key, String(progress));
+
+  fetch(`${apiBase}/updateProgress`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, progress })
+  }).catch(err => console.warn('progress update failed', err));
 }
 
 function initLoginPage() {
@@ -905,8 +919,6 @@ function initializeClearFavorites() {
 // Only run search/filter on patterns page
 if (window.location.pathname.includes("patterns.html")) {
     document.addEventListener('DOMContentLoaded', function() {
-        initializeFavorites();
-        initializeFavoritesFilter();
         initializeClearFavorites();
         
         const searchInput = document.getElementById("searchInput");
@@ -1099,24 +1111,39 @@ __error = sys.stderr.getvalue()
 
 // Initialize practice editor whenever the page loads (function will only attach listeners if elements exist)
 document.addEventListener('DOMContentLoaded', initializePracticeEditor);
-const registerBtn = document.getElementById("registerBtn");
 
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
+// --- Execution Control ---
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Always run these
+    checkAuthentication();
+    updateNavForAuth();
+    initDarkModeOnLoad();
+    initializeDarkMode();
+    highlightActivePage();
 
-  fetch("http://localhost:3000/register", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ username, password })
-  })
-  .then(res => res.json())
-  .then(data => {
-    alert("User registered successfully 🚀");
-    console.log(data);
-  })
-  .catch(error => {
-    console.error("Error:", error);
-  });
-;
+    // 2. Only run login logic if the elements exist (Login Page)
+    if (document.getElementById('loginBtn')) {
+        initLoginPage();
+    }
+
+    // 3. Only run leaderboard logic if the list exists (Leaderboard Page)
+    if (document.getElementById('leaderboardList')) {
+        loadLeaderboard();
+    }
+});
+document.addEventListener('DOMContentLoaded', () => {
+    // These run on every page
+    checkAuthentication();
+    updateNavForAuth();
+    initDarkModeOnLoad();
+
+    // ONLY runs if the login button is actually on the screen
+    if (document.getElementById('loginBtn')) {
+        initLoginPage();
+    }
+    
+    // ONLY runs on the leaderboard page
+    if (document.getElementById('leaderboardList')) {
+        loadLeaderboard();
+    }
+});
