@@ -2,10 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>DSA Pattern Hub - Login</title>
     <meta name="description" content="Login or register to access the DSA Pattern Hub.">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20260718">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -28,13 +31,14 @@
         <input type="text" id="username" placeholder="Username" required />
         <input type="password" id="password" placeholder="Password" required />
         <div class="buttons">
-            <button id="loginBtn">Login</button>
-            <button id="registerBtn">Register</button>
+            <button type="button" id="loginBtn">Login</button>
+            <button type="button" id="registerBtn">Register</button>
         </div>
+        <div id="authStatus" aria-live="polite" style="display:none; margin-top:0.75rem; color:var(--button-primary); font-weight:600;"></div>
     </form>
 </main>
 
-<script src="script.js"></script>
+<script src="script.js?v=20260718"></script>
 
 <footer class="site-footer">
     <nav>

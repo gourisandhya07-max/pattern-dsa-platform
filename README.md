@@ -12,7 +12,7 @@ Located in the `backend/` folder. It uses a simple JSON file (`users.json`) to s
 ```bash
 cd backend
 npm install   # installs express, cors, body-parser
-npm start     # starts server on http://localhost:3000
+npm start     # starts server on http://localhost:5500
 ```
 
 Available API endpoints:
@@ -41,7 +41,7 @@ Page visits trigger progress updates to the backend. The leaderboard page fetche
 
 ## Development Notes
 - For quick testing, run backend locally and open frontend pages in the browser (served via file:// or a simple HTTP server).
-- The backend uses port 3000 by default; adjust `apiBase` in `script.js` if changed.
+- The backend uses port 5500 by default; adjust `apiBase` in `script.js` if changed.
 
 ## License
 MIT
@@ -67,7 +67,7 @@ npm install
 node server.js
 
 You should see:
-Backend server listening on port 3000
+Backend server listening on port 5500
 
 ### 5️⃣ Open frontend
 Go back to main folder and open:
@@ -77,4 +77,4 @@ login.html
 ---
 
 ## ⚙ Backend runs on:
-http://localhost:3000
+http://localhost:5500

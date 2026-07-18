@@ -2,11 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>DSA Pattern Hub - Pattern Detail</title>
     <meta name="description" content="Detailed explanation of a DSA pattern with definition, intuition, template, and example problems.">
     <meta name="keywords" content="DSA pattern, detail, definition, template, algorithm">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20260718">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -25,81 +28,15 @@
 
 <section class="pattern-detail">
     <div class="pattern-header">
-        <h1>Sliding Window</h1>
-        <div class="difficulty-badge medium">Medium</div>
+        <h1>Loading lesson…</h1>
+        <div class="difficulty-badge medium">Loading</div>
     </div>
 
     <div class="pattern-content">
-        <div class="pattern-section">
-            <h2>Definition</h2>
-            <p>The Sliding Window technique is a method for solving problems that involve arrays or strings by maintaining a "window" of elements and sliding it through the data structure to find a desired result. This approach is particularly useful for problems that require finding subarrays or substrings that meet certain conditions.</p>
-        </div>
-
-        <div class="pattern-section">
-            <h2>When to Use</h2>
-            <ul>
-                <li>Problems involving subarrays or substrings</li>
-                <li>Finding maximum/minimum values in a sliding window</li>
-                <li>Problems requiring contiguous elements</li>
-                <li>Optimization problems where you need to avoid nested loops</li>
-                <li>Strings problems like finding longest substring without repeating characters</li>
-            </ul>
-        </div>
-
-        <div class="pattern-section">
-            <h2>Template</h2>
-            <div class="code-block">
-                <pre><code>// Basic Sliding Window Template
-int left = 0;
-int maxLength = 0;
-
-for (int right = 0; right &lt; n; right++) {
-    // Expand window by adding right element
-    
-    // Shrink window from left while condition is not met
-    while (condition && left &lt;= right) {
-        // Remove left element from window
-        left++;
-    }
-    
-    // Update result with current window
-    maxLength = Math.max(maxLength, right - left + 1);
-}</code></pre>
+        <div class="lesson-shell">
+            <div class="lesson-card">
+                <p>Loading the guided lesson…</p>
             </div>
-            <p><strong>Key Points:</strong></p>
-            <ul>
-                <li><code>left</code> and <code>right</code> pointers define the window boundaries</li>
-                <li>Expand window by moving <code>right</code> pointer</li>
-                <li>Shrink window by moving <code>left</code> pointer when condition is violated</li>
-                <li>Track the maximum/minimum result during the process</li>
-            </ul>
-        </div>
-
-        <div class="pattern-section">
-            <h2>Complexity</h2>
-            <div class="complexity-grid">
-                <div class="complexity-item">
-                    <h3>Time Complexity</h3>
-                    <p><strong>O(n)</strong></p>
-                    <p>Each element is visited at most twice (once by right, once by left)</p>
-                </div>
-                <div class="complexity-item">
-                    <h3>Space Complexity</h3>
-                    <p><strong>O(1)</strong> or <strong>O(k)</strong></p>
-                    <p>Usually O(1) extra space, sometimes O(k) for additional data structures</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="pattern-section">
-            <h2>Example Problems</h2>
-            <ul>
-                <li>Maximum Sum Subarray of Size K</li>
-                <li>Longest Substring Without Repeating Characters</li>
-                <li>Minimum Window Substring</li>
-                <li>Fruit Into Baskets</li>
-                <li>Permutation in String</li>
-            </ul>
         </div>
     </div>
 
@@ -109,7 +46,7 @@ for (int right = 0; right &lt; n; right++) {
     </div>
 </section>
 
-<script src="script.js"></script>
+<script src="script.js?v=20260718"></script>
 
 <footer class="site-footer">
     <nav>

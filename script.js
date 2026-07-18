@@ -1,17 +1,279 @@
 // Dark Mode Management with localStorage
 let darkModeInitialized = false;
 
-// API base URL (backend runs separately on localhost:3000)
-const apiBase = 'http://localhost:3000';
+// API base URL (backend runs separately on localhost:5500)
+const apiBase = 'http://localhost:5500';
+const learningProgressKey = 'dsaLearningProgress';
+const onboardingStateKey = 'dsaOnboardingState';
+
+function getLearningState() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(learningProgressKey) || 'null');
+        return saved || { score: 0, answered: 0, completedQuestions: [] };
+    } catch {
+        return { score: 0, answered: 0, completedQuestions: [] };
+    }
+}
+
+function saveLearningState(state) {
+    localStorage.setItem(learningProgressKey, JSON.stringify(state));
+}
+
+function getOnboardingState() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(onboardingStateKey) || 'null');
+        return saved || { level: '', completed: false };
+    } catch {
+        return { level: '', completed: false };
+    }
+}
+
+function saveOnboardingState(state) {
+    localStorage.setItem(onboardingStateKey, JSON.stringify(state));
+}
+
+function renderLearningInteractivity() {
+    const containers = document.querySelectorAll('[data-learning-quiz]');
+    if (!containers.length) return;
+
+    const path = (window.location.pathname.split('/').pop() || '').toLowerCase();
+    const isHomePage = path === '' || path === 'index.html' || path === '/';
+    if (!isHomePage) return;
+
+    const username = localStorage.getItem('username');
+
+    const onboardingState = getOnboardingState();
+    const questions = [
+        {
+            id: 'window',
+            prompt: 'Which pattern is best for longest contiguous subarrays with a constraint?',
+            options: ['Sliding Window', 'Binary Search', 'DFS', 'Merge Sort'],
+            answer: 0,
+            explanation: 'Sliding Window is ideal for contiguous subarrays and substrings.'
+        },
+        {
+            id: 'big-o',
+            prompt: 'What does O(log n) usually describe?',
+            options: ['Linear growth', 'Logarithmic growth', 'Exponential growth', 'Constant growth'],
+            answer: 1,
+            explanation: 'O(log n) appears in binary search because the search space shrinks quickly.'
+        },
+        {
+            id: 'practice',
+            prompt: 'Why should you practice after learning a pattern?',
+            options: ['It helps you recognize the pattern faster', 'It makes the code longer', 'It removes the need for explanation', 'It avoids complexity analysis'],
+            answer: 0,
+            explanation: 'Practice turns recognition into instinct and strengthens problem-solving.'
+        }
+    ];
+
+    containers.forEach((container) => {
+        if (!username) {
+            container.innerHTML = `
+                <div class="learning-card">
+                    <div class="learning-header">
+                        <h3>Quick check ready</h3>
+                        <span class="learning-badge">Sign in</span>
+                    </div>
+                    <p class="learning-question">Log in to unlock the interactive quick check, save your progress, and receive guided feedback.</p>
+                    <div class="learning-options">
+                        <a class="option-btn" href="login.html" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">Log in or register</a>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        if (!onboardingState.level) {
+            container.innerHTML = `
+                <div class="learning-card">
+                    <div class="learning-header">
+                        <h3>Welcome back, ${username}</h3>
+                        <span class="learning-badge">Quick setup</span>
+                    </div>
+                    <p class="learning-question">Before you start, how would you describe your current level?</p>
+                    <div class="learning-options">
+                        <button class="option-btn" data-level="beginner">Complete beginner</button>
+                        <button class="option-btn" data-level="intermediate">Intermediate</button>
+                        <button class="option-btn" data-level="expert">Expert</button>
+                    </div>
+                </div>
+            `;
+            container.querySelectorAll('.option-btn').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const selectedLevel = btn.dataset.level;
+                    const nextState = getOnboardingState();
+                    nextState.level = selectedLevel;
+                    nextState.completed = selectedLevel === 'beginner';
+                    saveOnboardingState(nextState);
+                    renderLearningInteractivity();
+                });
+            });
+            return;
+        }
+
+        if (onboardingState.level === 'beginner') {
+            container.innerHTML = `
+                <div class="learning-card">
+                    <div class="learning-header">
+                        <h3>Perfect for beginners</h3>
+                        <span class="learning-badge">Skipped</span>
+                    </div>
+                    <p class="learning-question">We’ll keep the first lessons simple. You can jump straight into the patterns and practice when you’re ready.</p>
+                    <div class="learning-options">
+                        <a class="option-btn" href="patterns.html" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">Start exploring patterns</a>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        const state = getLearningState();
+        const question = questions[state.answered % questions.length];
+        const progressPercent = Math.min(100, Math.round((state.completedQuestions.length / 6) * 100));
+        container.innerHTML = `
+            <div class="learning-card">
+                <div class="learning-header">
+                    <h3>Quick Check</h3>
+                    <span class="learning-badge">${state.completedQuestions.length}/6 done</span>
+                </div>
+                <div class="learning-progress">
+                    <div class="learning-progress-bar" style="width:${progressPercent}%"></div>
+                </div>
+                <p class="learning-question">${question.prompt}</p>
+                <div class="learning-options">
+                    ${question.options.map((option, index) => `<button class="option-btn" data-index="${index}">${option}</button>`).join('')}
+                </div>
+                <p class="learning-feedback" aria-live="polite"></p>
+                <button class="learning-refresh" type="button">Try another one</button>
+            </div>
+        `;
+
+        const feedbackEl = container.querySelector('.learning-feedback');
+        const refreshBtn = container.querySelector('.learning-refresh');
+        container.querySelectorAll('.option-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const selectedIndex = Number(btn.dataset.index);
+                const isCorrect = selectedIndex === question.answer;
+                const nextState = getLearningState();
+                if (!nextState.completedQuestions.includes(question.id)) {
+                    nextState.completedQuestions.push(question.id);
+                }
+                nextState.answered = nextState.completedQuestions.length;
+                nextState.score += isCorrect ? 1 : 0;
+                nextState.lastUpdated = new Date().toLocaleString();
+                saveLearningState(nextState);
+
+                feedbackEl.textContent = isCorrect ? `Correct! ${question.explanation}` : `Not quite. ${question.explanation}`;
+                feedbackEl.className = `learning-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+                container.querySelectorAll('.option-btn').forEach((option) => option.disabled = true);
+                refreshBtn.style.display = 'inline-flex';
+            });
+        });
+
+        refreshBtn.addEventListener('click', () => renderLearningInteractivity());
+    });
+}
+
+function getBotReply(message) {
+    const text = message.toLowerCase();
+    if (/(slow|performance|bug|error|refresh|backend|server)/.test(text)) {
+        return 'If the app feels slow, make sure the backend server is running on localhost:5500 and refresh once. The UI itself is lightweight, so most issues are caused by the server or a stale browser tab.';
+    }
+    if (/(sliding window|window)/.test(text)) {
+        return 'Sliding Window is great for contiguous subarrays or substrings. Keep two pointers, expand and shrink carefully, and update the best answer as the window moves.';
+    }
+    if (/(binary search|log n|o\(log n\))/.test(text)) {
+        return 'Binary search uses a sorted array and halves the search space every step. That is why it is O(log n) rather than O(n).';
+    }
+    if (/(greedy|dp|dynamic programming|backtracking)/.test(text)) {
+        return 'Greedy picks the best local choice, DP stores subproblem results, and backtracking explores options and prunes when needed. Choose the approach based on overlap and optimality.';
+    }
+    if (/(login|logout|account|auth)/.test(text)) {
+        return 'Use the Login page to sign in or register. After that, your progress and favorite patterns will be available across the site.';
+    }
+    if (/(hello|hi|help|thanks)/.test(text)) {
+        return 'I can help with DSA concepts, app usage, and performance tips. Try asking about sliding window, binary search, or login issues.';
+    }
+    return 'I can explain DSA patterns like Sliding Window, Two Pointers, Binary Search, DP, and answer questions about this app’s performance or login flow. Try something like “Explain sliding window” or “Why is the app slow?”';
+}
+
+function initChatbot() {
+    if (document.getElementById('aiBotWidget')) return;
+
+    const widget = document.createElement('div');
+    widget.id = 'aiBotWidget';
+    widget.className = 'ai-chatbot';
+    widget.innerHTML = `
+        <button class="chat-toggle" type="button" aria-label="Open AI assistant">🤖</button>
+        <div class="chat-window">
+            <div class="chat-header">
+                <strong>AI Study Bot</strong>
+                <span>Ask anything</span>
+            </div>
+            <div class="chat-messages">
+                <div class="message bot">Hi! I can explain DSA patterns and answer questions about this app.</div>
+            </div>
+            <div class="chat-suggestions">
+                <button type="button" data-suggestion="Explain sliding window">Sliding Window</button>
+                <button type="button" data-suggestion="Why does this app feel slow?">App Performance</button>
+                <button type="button" data-suggestion="What is O(log n)?">Big-O</button>
+            </div>
+            <form class="chat-form">
+                <input type="text" class="chat-input" placeholder="Ask about DSA or the app" />
+                <button type="submit">Send</button>
+            </form>
+        </div>
+    `;
+
+    document.body.appendChild(widget);
+
+    const toggle = widget.querySelector('.chat-toggle');
+    const windowEl = widget.querySelector('.chat-window');
+    const form = widget.querySelector('.chat-form');
+    const input = widget.querySelector('.chat-input');
+    const messages = widget.querySelector('.chat-messages');
+
+    toggle.addEventListener('click', () => {
+        windowEl.classList.toggle('open');
+    });
+
+    widget.querySelectorAll('[data-suggestion]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            input.value = btn.getAttribute('data-suggestion');
+            form.requestSubmit();
+        });
+    });
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const value = input.value.trim();
+        if (!value) return;
+        const userMessage = document.createElement('div');
+        userMessage.className = 'message user';
+        userMessage.textContent = value;
+        messages.appendChild(userMessage);
+        input.value = '';
+        const botMessage = document.createElement('div');
+        botMessage.className = 'message bot';
+        botMessage.textContent = getBotReply(value);
+        messages.appendChild(botMessage);
+        messages.scrollTop = messages.scrollHeight;
+    });
+}
 
 // ---------- Authentication & Navigation Helpers ----------
 function checkAuthentication() {
     const username = localStorage.getItem('username');
-    const path = window.location.pathname.split('/').pop();
-    // allow access to login page without a user
-    if (!username && path !== 'login.html') {
-        window.location.href = 'login.html';
+    const path = (window.location.pathname.split('/').pop() || '').toLowerCase();
+
+    // Keep the login page available, but do not block the rest of the learning experience.
+    if (!username && path === 'login.html') {
+        return;
     }
+
+    // Optional auth for the app: allow learners to browse lessons even before logging in.
+    return;
 }
 
 function updateNavForAuth() {
@@ -55,8 +317,15 @@ function updateNavForAuth() {
             navUl.appendChild(li);
             li.querySelector('#logoutLink').addEventListener('click', e => {
                 e.preventDefault();
+                const shouldLogout = window.confirm('Are you sure you want to log out?');
+                if (!shouldLogout) return;
                 localStorage.removeItem('username');
-                window.location.href = 'login.html';
+                localStorage.removeItem(learningProgressKey);
+                localStorage.removeItem(onboardingStateKey);
+                updateNavForAuth();
+                if (typeof renderLearningInteractivity === 'function') {
+                    renderLearningInteractivity();
+                }
             });
         }
     } else {
@@ -88,56 +357,66 @@ function initLoginPage() {
     const registerBtn = document.getElementById('registerBtn');
     const userInput = document.getElementById('username');
     const passInput = document.getElementById('password');
+    const authForm = document.getElementById('authForm');
+    const authStatus = document.getElementById('authStatus');
+
+    const submitAuthRequest = async (mode) => {
+        if (!userInput || !passInput) return;
+        const username = userInput.value.trim();
+        const password = passInput.value;
+        if (!username || !password) return alert('Enter credentials');
+
+        try {
+            const endpoint = mode === 'register' ? '/register' : '/login';
+            const res = await fetch(`${apiBase}${endpoint}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username, password})
+            });
+            const data = await res.json();
+            if (data.success) {
+                localStorage.setItem('username', username);
+                if (authStatus) {
+                    authStatus.textContent = `Welcome, ${username}! You are now signed in.`;
+                    authStatus.style.display = 'block';
+                }
+                userInput.value = '';
+                passInput.value = '';
+                if (typeof updateNavForAuth === 'function') {
+                    updateNavForAuth();
+                }
+                if (typeof renderLearningInteractivity === 'function') {
+                    renderLearningInteractivity();
+                }
+            } else {
+                alert(data.message || (mode === 'register' ? 'Registration failed' : 'Login failed'));
+            }
+        } catch (err) {
+            console.error(err);
+            alert(mode === 'register' ? 'Registration request failed' : 'Login request failed');
+        }
+    };
+
+    if (authForm) {
+        authForm.addEventListener('submit', e => {
+            e.preventDefault();
+            if (loginBtn) {
+                loginBtn.click();
+            }
+        });
+    }
 
     if (loginBtn) {
         loginBtn.addEventListener('click', async e => {
             e.preventDefault();
-            const username = userInput.value.trim();
-            const password = passInput.value;
-            if (!username || !password) return alert('Enter credentials');
-            try {
-                const res = await fetch(`${apiBase}/login`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username, password})
-                });
-                const data = await res.json();
-                if (data.success) {
-                    localStorage.setItem('username', username);
-                    window.location.href = 'index.html';
-                } else {
-                    alert(data.message || 'Login failed');
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Login request failed');
-            }
+            await submitAuthRequest('login');
         });
     }
 
     if (registerBtn) {
         registerBtn.addEventListener('click', async e => {
             e.preventDefault();
-            const username = userInput.value.trim();
-            const password = passInput.value;
-            if (!username || !password) return alert('Enter credentials');
-            try {
-                const res = await fetch(`${apiBase}/register`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username, password})
-                });
-                const data = await res.json();
-                if (data.success) {
-                    localStorage.setItem('username', username);
-                    window.location.href = 'index.html';
-                } else {
-                    alert(data.message || 'Registration failed');
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Registration request failed');
-            }
+            await submitAuthRequest('register');
         });
     }
 }
@@ -241,21 +520,26 @@ function highlightActivePage() {
     });
 }
 
+let commonInitHasRun = false;
+
 // Call on page load for all common initialization
 function commonInit() {
+    if (commonInitHasRun) return;
+    commonInitHasRun = true;
+
     initDarkModeOnLoad();
     initializeDarkMode();
     highlightActivePage();
-    checkAuthentication();            // redirect if not logged in
-    updateNavForAuth();               // adjust nav links based on auth state
+    checkAuthentication();
+    updateNavForAuth();
+    renderLearningInteractivity();
+    initChatbot();
     runPageSpecificInit();
 }
 
-// Setup listener, but only call when DOM is ready _and_ after all definitions (including patternData) have been parsed.
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', commonInit);
+    document.addEventListener('DOMContentLoaded', commonInit, { once: true });
 } else {
-    // already ready, run directly (script is loaded at bottom so patternData should be initialized by now)
     commonInit();
 }
 
@@ -751,91 +1035,307 @@ void backtrack(parameters) {
 };
 
 // Dynamic Pattern Detail Loading
+function getPatternLessonState(patternId) {
+    try {
+        const saved = JSON.parse(localStorage.getItem(`patternLesson:${patternId}`) || 'null');
+        return saved || { patternId, level: '', sectionIndex: 0, completedSections: 0, score: 0, answers: [] };
+    } catch (err) {
+        console.warn('Could not load lesson state', err);
+        return { patternId, level: '', sectionIndex: 0, completedSections: 0, score: 0, answers: [] };
+    }
+}
+
+function savePatternLessonState(patternId, state) {
+    localStorage.setItem(`patternLesson:${patternId}`, JSON.stringify(state));
+}
+
+function buildPatternLessonSections(pattern, level) {
+    const levelLabel = level === 'beginner' ? 'Beginner' : level === 'intermediate' ? 'Intermediate' : 'Expert';
+    const levelHint = {
+        beginner: 'Keep it simple: focus on the core idea and a common example.',
+        intermediate: 'Connect the pattern to a few real problem clues and common templates.',
+        expert: 'Think about trade-offs, constraints, and when this pattern is worth the extra structure.'
+    }[level] || 'Keep practicing the rhythm of the pattern.';
+
+    return [
+        {
+            title: '1. Understand the idea',
+            body: `
+                <p>${pattern.definition}</p>
+                <p><strong>${levelLabel} tip:</strong> ${levelHint}</p>
+                <p>${pattern.intuition}</p>
+            `,
+            question: {
+                prompt: `Which statement best describes ${pattern.title}?`,
+                options: [
+                    `It helps you avoid repeated work by moving through data in a focused way.`,
+                    `It always sorts everything in place.`,
+                    `It only works for trees.`,
+                    `It ignores time complexity completely.`
+                ],
+                answer: 0,
+                explanation: `Exactly — ${pattern.title} is about reducing repetitive work and keeping the search space efficient.`
+            }
+        },
+        {
+            title: '2. See when it helps',
+            body: `
+                <p><strong>Good clues:</strong></p>
+                <ul>${pattern.usage.slice(0, 4).map(item => `<li>${item}</li>`).join('')}</ul>
+                <p>When you spot a contiguous range, a substring, or a sorted structure, this pattern is often the right fit.</p>
+            `,
+            question: {
+                prompt: 'Which problem type is the best fit for this pattern?',
+                options: [
+                    'Finding a subarray or substring that satisfies a rule.',
+                    'Creating a random password generator.',
+                    'Printing all files in a folder.',
+                    'Reversing a string without looking at it.'
+                ],
+                answer: 0,
+                explanation: 'Great choice — patterns like this shine when a window or pair of pointers can move through the data without checking everything again.'
+            }
+        },
+        {
+            title: '3. Follow the template',
+            body: `
+                <div class="code-block">
+                    <pre><code>${escapeHtml(pattern.template)}</code></pre>
+                </div>
+                <p><strong>Key takeaway:</strong> move the boundaries carefully, update the result as you go, and only shrink or expand when the condition changes.</p>
+            `,
+            question: {
+                prompt: 'What is the main job of the movement step in the template?',
+                options: [
+                    'To keep the window or pointers in sync while the answer is updated.',
+                    'To print the code once and stop.',
+                    'To ignore invalid states.',
+                    'To compare every pair of elements twice.'
+                ],
+                answer: 0,
+                explanation: 'Perfect — the motion of the pointers is what keeps the logic efficient and easy to reason about.'
+            }
+        },
+        {
+            title: '4. Measure your progress',
+            body: `
+                <div class="complexity-grid">
+                    <div class="complexity-item">
+                        <h3>Time</h3>
+                        <p><strong>${pattern.timeComplexity}</strong></p>
+                        <p>${pattern.timeExplanation}</p>
+                    </div>
+                    <div class="complexity-item">
+                        <h3>Space</h3>
+                        <p><strong>${pattern.spaceComplexity}</strong></p>
+                        <p>${pattern.spaceExplanation}</p>
+                    </div>
+                </div>
+                <p><strong>Try this next:</strong> revisit the examples and explain the pattern in your own words before you solve a new challenge.</p>
+            `,
+            question: {
+                prompt: 'Why do learners benefit from practicing this pattern after reading it?',
+                options: [
+                    'Because it helps the pattern become familiar and easier to recognize in future problems.',
+                    'Because it removes the need for preparation.',
+                    'Because it shortens the code without changing the logic.',
+                    'Because it makes every problem O(1).'
+                ],
+                answer: 0,
+                explanation: 'Exactly — practice turns the idea into instinct, which is the real goal of learning a pattern.'
+            }
+        }
+    ];
+}
+
+function renderPatternLesson(pattern, patternId, state) {
+    const header = document.querySelector('.pattern-header');
+    const content = document.querySelector('.pattern-content');
+    if (!header || !content) return;
+
+    const sections = buildPatternLessonSections(pattern, state.level || 'beginner');
+    const totalSections = sections.length;
+    const currentSectionIndex = Math.min(state.sectionIndex || 0, totalSections - 1);
+    const currentSection = sections[currentSectionIndex];
+    const progressPercent = Math.min(100, Math.round(((state.completedSections || 0) / totalSections) * 100));
+    const completedCount = state.completedSections || 0;
+
+    document.title = `DSA Pattern Hub - ${pattern.title}`;
+    header.innerHTML = `
+        <h1>${pattern.title}</h1>
+        <div class="difficulty-badge ${pattern.difficulty}">${pattern.difficulty.charAt(0).toUpperCase() + pattern.difficulty.slice(1)}</div>
+        <div class="lesson-progress-card">
+            <div class="lesson-progress-bar">
+                <span style="width: ${progressPercent}%"></span>
+            </div>
+            <div class="lesson-progress-meta">
+                <span>Level: <strong>${(state.level || 'beginner').charAt(0).toUpperCase() + (state.level || 'beginner').slice(1)}</strong></span>
+                <span>${completedCount}/${totalSections} sections complete</span>
+            </div>
+        </div>
+    `;
+
+    const isCheckpoint = state.view === 'checkpoint';
+    if (isCheckpoint) {
+        content.innerHTML = `
+            <div class="lesson-shell">
+                <div class="lesson-card">
+                    <div class="lesson-step">Checkpoint ${currentSectionIndex + 1}</div>
+                    <h2>Quick check</h2>
+                    <p><strong>${currentSection.question.prompt}</strong></p>
+                    <div class="quiz-options">
+                        ${currentSection.question.options.map((option, index) => `<button class="quiz-option" data-index="${index}" type="button">${option}</button>`).join('')}
+                    </div>
+                    <div class="quiz-feedback" aria-live="polite"></div>
+                    <button class="nav-button continue-btn" type="button" disabled>Continue</button>
+                </div>
+            </div>
+        `;
+
+        const feedbackEl = content.querySelector('.quiz-feedback');
+        const continueBtn = content.querySelector('.continue-btn');
+        const optionButtons = content.querySelectorAll('.quiz-option');
+
+        optionButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                const selectedIndex = Number(button.dataset.index);
+                const isCorrect = selectedIndex === currentSection.question.answer;
+                const nextState = getPatternLessonState(patternId);
+                nextState.patternId = patternId;
+                nextState.level = state.level || 'beginner';
+                nextState.sectionIndex = currentSectionIndex;
+                nextState.completedSections = Math.max(nextState.completedSections || 0, currentSectionIndex + 1);
+                nextState.score = (nextState.score || 0) + (isCorrect ? 1 : 0);
+                nextState.answers.push({ section: currentSectionIndex + 1, correct: isCorrect, selectedIndex });
+                nextState.view = 'theory';
+                savePatternLessonState(patternId, nextState);
+                feedbackEl.innerHTML = isCorrect
+                    ? `<span class="feedback success">✅ Correct! ${currentSection.question.explanation}<br>Nice work — you’ve got this concept.</span>`
+                    : `<span class="feedback error">⚠️ Not quite. ${currentSection.question.explanation}</span>`;
+                optionButtons.forEach((option) => option.disabled = true);
+                continueBtn.disabled = false;
+                continueBtn.textContent = currentSectionIndex + 1 >= totalSections ? 'Finish lesson' : 'Next section';
+            });
+        });
+
+        continueBtn.addEventListener('click', () => {
+            const nextState = getPatternLessonState(patternId);
+            nextState.patternId = patternId;
+            nextState.level = state.level || 'beginner';
+            if (currentSectionIndex + 1 >= totalSections) {
+                nextState.completedSections = totalSections;
+                nextState.sectionIndex = totalSections;
+                nextState.completed = true;
+                nextState.view = 'complete';
+                savePatternLessonState(patternId, nextState);
+                content.innerHTML = `
+                    <div class="lesson-shell">
+                        <div class="lesson-card">
+                            <h2>Lesson complete!</h2>
+                            <p>You finished the guided lesson for <strong>${pattern.title}</strong>.</p>
+                            <p>Your score: <strong>${nextState.score}/${totalSections}</strong></p>
+                            <p>Keep practicing and revisit the examples whenever you feel stuck.</p>
+                            <div class="lesson-actions">
+                                <button class="nav-button" type="button" data-reset-lesson="true">Restart lesson</button>
+                                <a class="nav-button" href="practice.html">Practice now</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                content.querySelector('[data-reset-lesson="true"]').addEventListener('click', () => {
+                    const resetState = { patternId, level: state.level || 'beginner', sectionIndex: 0, completedSections: 0, score: 0, answers: [], view: 'theory' };
+                    savePatternLessonState(patternId, resetState);
+                    renderPatternLesson(pattern, patternId, resetState);
+                });
+                return;
+            }
+            nextState.sectionIndex = currentSectionIndex + 1;
+            nextState.view = 'theory';
+            savePatternLessonState(patternId, nextState);
+            renderPatternLesson(pattern, patternId, nextState);
+        });
+        return;
+    }
+
+    content.innerHTML = `
+        <div class="lesson-shell">
+            <div class="lesson-card">
+                <div class="lesson-step">Section ${currentSectionIndex + 1} of ${totalSections}</div>
+                <h2>${currentSection.title}</h2>
+                <div class="lesson-body">${currentSection.body}</div>
+                <div class="lesson-actions">
+                    <button class="nav-button" type="button" data-go-checkpoint="true">Continue to question</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    content.querySelector('[data-go-checkpoint="true"]').addEventListener('click', () => {
+        const nextState = getPatternLessonState(patternId);
+        nextState.patternId = patternId;
+        nextState.level = state.level || 'beginner';
+        nextState.sectionIndex = currentSectionIndex;
+        nextState.completedSections = Math.max(nextState.completedSections || 0, currentSectionIndex + 1);
+        nextState.view = 'checkpoint';
+        savePatternLessonState(patternId, nextState);
+        renderPatternLesson(pattern, patternId, nextState);
+    });
+}
+
 function loadPatternDetail() {
     const urlParams = new URLSearchParams(window.location.search);
     const patternId = urlParams.get('pattern');
     
     if (!patternId || !patternData[patternId]) {
-        // Default to patterns page if pattern not found
-        window.location.href = 'patterns.html';
+        const header = document.querySelector('.pattern-header');
+        const content = document.querySelector('.pattern-content');
+        if (header) header.innerHTML = '<h1>Pattern not found</h1><div class="difficulty-badge medium">Unavailable</div>';
+        if (content) content.innerHTML = '<div class="lesson-shell"><div class="lesson-card"><h2>Pattern unavailable</h2><p>The requested lesson could not be loaded. Please return to the patterns list.</p></div></div>';
         return;
     }
     
     const pattern = patternData[patternId];
-    
-    // Update page title
-    document.title = `DSA Pattern Hub - ${pattern.title}`;
-    
-    // Update header
+    const state = getPatternLessonState(patternId);
     const header = document.querySelector('.pattern-header');
-    header.innerHTML = `
-        <h1>${pattern.title}</h1>
-        <div class="difficulty-badge ${pattern.difficulty}">${pattern.difficulty.charAt(0).toUpperCase() + pattern.difficulty.slice(1)}</div>
-    `;
-    
-    // Update content with enhanced code block formatting
     const content = document.querySelector('.pattern-content');
-    const codeBlockHTML = `
-        <div class="code-block">
-            <pre><code>${escapeHtml(pattern.template)}</code></pre>
-        </div>
-    `;
-    
-    content.innerHTML = `
-        <div class="pattern-section">
-            <h2>Definition</h2>
-            <p>${pattern.definition}</p>
-        </div>
-        
-        <div class="pattern-section">
-            <h2>Intuition</h2>
-            <p>${pattern.intuition}</p>
-        </div>
-        
-        <div class="pattern-section">
-            <h2>When to Use</h2>
-            <ul>
-                ${pattern.usage.map(item => `<li>${item}</li>`).join('')}
-            </ul>
-        </div>
-        
-        <div class="pattern-section">
-            <h2>Code Template</h2>
-            <p style="margin-bottom: 1rem; font-weight: 500; color: var(--text-muted);">Starter code structure for this pattern:</p>
-            ${codeBlockHTML}
-            <p style="margin-top: 1rem;"><strong>Key Points:</strong></p>
-            <ul>
-                <li>Understand the problem constraints before coding</li>
-                <li>Build intuition with a few small examples</li>
-                <li>Implement step by step and test frequently</li>
-                <li>Optimize after getting a working solution</li>
-            </ul>
-        </div>
-        
-        <div class="pattern-section">
-            <h2>Complexity Analysis</h2>
-            <div class="complexity-grid">
-                <div class="complexity-item">
-                    <h3>Time Complexity</h3>
-                    <p><strong>${pattern.timeComplexity}</strong></p>
-                    <p>${pattern.timeExplanation}</p>
-                </div>
-                <div class="complexity-item">
-                    <h3>Space Complexity</h3>
-                    <p><strong>${pattern.spaceComplexity}</strong></p>
-                    <p>${pattern.spaceExplanation}</p>
+    if (!header || !content) return;
+
+    if (!state.level) {
+        header.innerHTML = `
+            <h1>${pattern.title}</h1>
+            <div class="difficulty-badge ${pattern.difficulty}">${pattern.difficulty.charAt(0).toUpperCase() + pattern.difficulty.slice(1)}</div>
+        `;
+        content.innerHTML = `
+            <div class="lesson-shell">
+                <div class="lesson-card">
+                    <h2>Choose your level</h2>
+                    <p>Before you start, tell us how confident you feel with <strong>${pattern.title}</strong>.</p>
+                    <div class="level-picker">
+                        <button class="level-btn" type="button" data-level="beginner">Beginner</button>
+                        <button class="level-btn" type="button" data-level="intermediate">Intermediate</button>
+                        <button class="level-btn" type="button" data-level="expert">Expert</button>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="pattern-section">
-            <h2>Example Problems</h2>
-            <p style="margin-bottom: 1rem; font-weight: 500; color: var(--text-muted);">Practice these problems to master the pattern:</p>
-            <ul>
-                ${pattern.examples.map(example => `<li>${example}</li>`).join('')}
-            </ul>
-        </div>
-    `;
+        `;
+        content.querySelectorAll('.level-btn').forEach((button) => {
+            button.addEventListener('click', () => {
+                const nextState = getPatternLessonState(patternId);
+                nextState.patternId = patternId;
+                nextState.level = button.dataset.level;
+                nextState.sectionIndex = 0;
+                nextState.completedSections = 0;
+                nextState.score = 0;
+                nextState.answers = [];
+                nextState.view = 'theory';
+                savePatternLessonState(patternId, nextState);
+                renderPatternLesson(pattern, patternId, nextState);
+            });
+        });
+        return;
+    }
+
+    renderPatternLesson(pattern, patternId, state);
 }
 
 // Helper function to escape HTML in code blocks
@@ -847,7 +1347,11 @@ function escapeHtml(text) {
 
 // Only run on pattern detail page
 if (window.location.pathname.includes("pattern-detail.html")) {
-    document.addEventListener('DOMContentLoaded', loadPatternDetail);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadPatternDetail, { once: true });
+    } else {
+        loadPatternDetail();
+    }
 }
 
 function updateFavoriteCount() {
@@ -1099,24 +1603,3 @@ __error = sys.stderr.getvalue()
 
 // Initialize practice editor whenever the page loads (function will only attach listeners if elements exist)
 document.addEventListener('DOMContentLoaded', initializePracticeEditor);
-const registerBtn = document.getElementById("registerBtn");
-
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-
-  fetch("http://localhost:3000/register", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ username, password })
-  })
-  .then(res => res.json())
-  .then(data => {
-    alert("User registered successfully 🚀");
-    console.log(data);
-  })
-  .catch(error => {
-    console.error("Error:", error);
-  });
-;
