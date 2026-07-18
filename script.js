@@ -265,7 +265,6 @@ function initChatbot() {
 // ---------- Authentication & Navigation Helpers ----------
 function checkAuthentication() {
     const username = localStorage.getItem('username');
-<<<<<<< HEAD
     const path = (window.location.pathname.split('/').pop() || '').toLowerCase();
 
     // Keep the login page available, but do not block the rest of the learning experience.
@@ -277,40 +276,34 @@ function checkAuthentication() {
     return;
 }
 
-
 function updateNavForAuth() {
     const nav = document.querySelector('.nav');
-    const navUl = nav?.querySelector('ul');
-    if (!nav || !navUl) return;
-
+    const navUl = document.querySelector('.nav ul');
+    if (!navUl || !nav) return;
     const username = localStorage.getItem('username');
 
-// greeting (right next to title)
-const brand = nav.querySelector('.nav-brand') || nav;
+    // greeting
+    let greetEl = nav.querySelector('#userGreeting');
+    if (username) {
+        if (!greetEl) {
+            greetEl = document.createElement('span');
+            greetEl.id = 'userGreeting';
+            greetEl.style.marginLeft = '1rem';
+            greetEl.style.fontWeight = '500';
+            nav.insertBefore(greetEl, navUl);
+        }
+        greetEl.textContent = `Hello, ${username}`;
+    } else if (greetEl) {
+        greetEl.remove();
+    }
 
-let greetEl = nav.querySelector('#userGreeting');
-if (!greetEl) {
-    greetEl = document.createElement('span');
-    greetEl.id = 'userGreeting';
-
-    const titleEl = brand.querySelector('h1');
-    if (titleEl) titleEl.insertAdjacentElement('afterend', greetEl);
-    else brand.insertBefore(greetEl, navUl);
-}
-
-greetEl.textContent = username ? `Hello, ${username}` : '';
-
-    // --- Ensure Leaderboard link exists ---
+    // ensure leaderboard link exists
     if (!navUl.querySelector('a[href="leaderboard.html"]')) {
         const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = 'leaderboard.html';
-        a.textContent = 'Leaderboard';
-        li.appendChild(a);
+        li.innerHTML = '<a href="leaderboard.html">Leaderboard</a>';
         navUl.appendChild(li);
     }
 
-<<<<<<< HEAD
     // add login/logout links depending on state
     if (username) {
         // remove any existing login link
@@ -348,47 +341,15 @@ greetEl.textContent = username ? `Hello, ${username}` : '';
         }
     }
 }
-=======
-    // --- Remove existing login/logout links ---
-    navUl.querySelectorAll('a[href="login.html"], #logoutLink').forEach(el => el.closest('li').remove());
->>>>>>> 2ea6892e4eabf97abc1ab692511530fa2e0e901e
 
-    // --- Add login/logout based on auth ---
-    const li = document.createElement('li');
-    const a = document.createElement('a');
-    if (username) {
-        a.href = '#';
-        a.id = 'logoutLink';
-        a.textContent = 'Logout';
-        a.addEventListener('click', e => {
-            e.preventDefault();
-            localStorage.removeItem('username');
-            if (window.location.pathname.endsWith('login.html')) return;
-            window.location.href = 'login.html';
-        });
-    } else {
-        a.href = 'login.html';
-        a.textContent = 'Login';
-    }
-    li.appendChild(a);
-    navUl.appendChild(li);
-}
 function sendProgress(progress) {
-  const username = localStorage.getItem('username');
-  if (!username) return;
-
-  // Don't resend same progress on every page reload
-  const key = `progressSent:${username}`;
-  const lastSent = Number(localStorage.getItem(key) || 0);
-  if (progress <= lastSent) return;
-
-  localStorage.setItem(key, String(progress));
-
-  fetch(`${apiBase}/updateProgress`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, progress })
-  }).catch(err => console.warn('progress update failed', err));
+    const username = localStorage.getItem('username');
+    if (!username) return;
+    fetch(`${apiBase}/updateProgress`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username, progress})
+    }).catch(err => console.warn('progress update failed', err));
 }
 
 function initLoginPage() {
@@ -1448,6 +1409,8 @@ function initializeClearFavorites() {
 // Only run search/filter on patterns page
 if (window.location.pathname.includes("patterns.html")) {
     document.addEventListener('DOMContentLoaded', function() {
+        initializeFavorites();
+        initializeFavoritesFilter();
         initializeClearFavorites();
         
         const searchInput = document.getElementById("searchInput");
@@ -1639,44 +1602,4 @@ __error = sys.stderr.getvalue()
 }
 
 // Initialize practice editor whenever the page loads (function will only attach listeners if elements exist)
-<<<<<<< HEAD
 document.addEventListener('DOMContentLoaded', initializePracticeEditor);
-=======
-document.addEventListener('DOMContentLoaded', initializePracticeEditor);
-
-// --- Execution Control ---
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Always run these
-    checkAuthentication();
-    updateNavForAuth();
-    initDarkModeOnLoad();
-    initializeDarkMode();
-    highlightActivePage();
-
-    // 2. Only run login logic if the elements exist (Login Page)
-    if (document.getElementById('loginBtn')) {
-        initLoginPage();
-    }
-
-    // 3. Only run leaderboard logic if the list exists (Leaderboard Page)
-    if (document.getElementById('leaderboardList')) {
-        loadLeaderboard();
-    }
-});
-document.addEventListener('DOMContentLoaded', () => {
-    // These run on every page
-    checkAuthentication();
-    updateNavForAuth();
-    initDarkModeOnLoad();
-
-    // ONLY runs if the login button is actually on the screen
-    if (document.getElementById('loginBtn')) {
-        initLoginPage();
-    }
-    
-    // ONLY runs on the leaderboard page
-    if (document.getElementById('leaderboardList')) {
-        loadLeaderboard();
-    }
-});
->>>>>>> 2ea6892e4eabf97abc1ab692511530fa2e0e901e
