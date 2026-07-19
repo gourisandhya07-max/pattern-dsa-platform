@@ -5,6 +5,7 @@ let darkModeInitialized = false;
 const apiBase = 'http://localhost:5500';
 const learningProgressKey = 'dsaLearningProgress';
 const onboardingStateKey = 'dsaOnboardingState';
+const progressCacheKey = 'dsaLastProgressSent';
 
 function getLearningState() {
     try {
@@ -37,58 +38,24 @@ function renderLearningInteractivity() {
     if (!containers.length) return;
 
     const path = (window.location.pathname.split('/').pop() || '').toLowerCase();
-    const isHomePage = path === '' || path === 'index.html' || path === '/';
-    if (!isHomePage) return;
+    const isOnboardingPage = path === 'onboarding.html';
+    if (!isOnboardingPage) return;
 
     const username = localStorage.getItem('username');
 
+    if (!username) {
+        window.location.href = 'login.html';
+        return;
+    }
+
     const onboardingState = getOnboardingState();
-    const questions = [
-        {
-            id: 'window',
-            prompt: 'Which pattern is best for longest contiguous subarrays with a constraint?',
-            options: ['Sliding Window', 'Binary Search', 'DFS', 'Merge Sort'],
-            answer: 0,
-            explanation: 'Sliding Window is ideal for contiguous subarrays and substrings.'
-        },
-        {
-            id: 'big-o',
-            prompt: 'What does O(log n) usually describe?',
-            options: ['Linear growth', 'Logarithmic growth', 'Exponential growth', 'Constant growth'],
-            answer: 1,
-            explanation: 'O(log n) appears in binary search because the search space shrinks quickly.'
-        },
-        {
-            id: 'practice',
-            prompt: 'Why should you practice after learning a pattern?',
-            options: ['It helps you recognize the pattern faster', 'It makes the code longer', 'It removes the need for explanation', 'It avoids complexity analysis'],
-            answer: 0,
-            explanation: 'Practice turns recognition into instinct and strengthens problem-solving.'
-        }
-    ];
 
     containers.forEach((container) => {
-        if (!username) {
-            container.innerHTML = `
-                <div class="learning-card">
-                    <div class="learning-header">
-                        <h3>Quick check ready</h3>
-                        <span class="learning-badge">Sign in</span>
-                    </div>
-                    <p class="learning-question">Log in to unlock the interactive quick check, save your progress, and receive guided feedback.</p>
-                    <div class="learning-options">
-                        <a class="option-btn" href="login.html" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">Log in or register</a>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
         if (!onboardingState.level) {
             container.innerHTML = `
                 <div class="learning-card">
                     <div class="learning-header">
-                        <h3>Welcome back, ${username}</h3>
+                        <h3>Welcome, ${username}</h3>
                         <span class="learning-badge">Quick setup</span>
                     </div>
                     <p class="learning-question">Before you start, how would you describe your current level?</p>
@@ -99,103 +66,47 @@ function renderLearningInteractivity() {
                     </div>
                 </div>
             `;
+
             container.querySelectorAll('.option-btn').forEach((btn) => {
                 btn.addEventListener('click', () => {
                     const selectedLevel = btn.dataset.level;
-                    const nextState = getOnboardingState();
-                    nextState.level = selectedLevel;
-                    nextState.completed = selectedLevel === 'beginner';
-                    saveOnboardingState(nextState);
-                    renderLearningInteractivity();
+
+                    saveOnboardingState({
+                        level: selectedLevel,
+                        completed: true
+                    });
+
+                    window.location.href = 'index.html';
                 });
             });
+
             return;
         }
 
-        if (onboardingState.level === 'beginner') {
-            container.innerHTML = `
-                <div class="learning-card">
-                    <div class="learning-header">
-                        <h3>Perfect for beginners</h3>
-                        <span class="learning-badge">Skipped</span>
-                    </div>
-                    <p class="learning-question">We’ll keep the first lessons simple. You can jump straight into the patterns and practice when you’re ready.</p>
-                    <div class="learning-options">
-                        <a class="option-btn" href="patterns.html" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">Start exploring patterns</a>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        const state = getLearningState();
-        const question = questions[state.answered % questions.length];
-        const progressPercent = Math.min(100, Math.round((state.completedQuestions.length / 6) * 100));
-        container.innerHTML = `
-            <div class="learning-card">
-                <div class="learning-header">
-                    <h3>Quick Check</h3>
-                    <span class="learning-badge">${state.completedQuestions.length}/6 done</span>
-                </div>
-                <div class="learning-progress">
-                    <div class="learning-progress-bar" style="width:${progressPercent}%"></div>
-                </div>
-                <p class="learning-question">${question.prompt}</p>
-                <div class="learning-options">
-                    ${question.options.map((option, index) => `<button class="option-btn" data-index="${index}">${option}</button>`).join('')}
-                </div>
-                <p class="learning-feedback" aria-live="polite"></p>
-                <button class="learning-refresh" type="button">Try another one</button>
-            </div>
-        `;
-
-        const feedbackEl = container.querySelector('.learning-feedback');
-        const refreshBtn = container.querySelector('.learning-refresh');
-        container.querySelectorAll('.option-btn').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                const selectedIndex = Number(btn.dataset.index);
-                const isCorrect = selectedIndex === question.answer;
-                const nextState = getLearningState();
-                if (!nextState.completedQuestions.includes(question.id)) {
-                    nextState.completedQuestions.push(question.id);
-                }
-                nextState.answered = nextState.completedQuestions.length;
-                nextState.score += isCorrect ? 1 : 0;
-                nextState.lastUpdated = new Date().toLocaleString();
-                saveLearningState(nextState);
-
-                feedbackEl.textContent = isCorrect ? `Correct! ${question.explanation}` : `Not quite. ${question.explanation}`;
-                feedbackEl.className = `learning-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
-                container.querySelectorAll('.option-btn').forEach((option) => option.disabled = true);
-                refreshBtn.style.display = 'inline-flex';
-            });
-        });
-
-        refreshBtn.addEventListener('click', () => renderLearningInteractivity());
+        window.location.href = 'index.html';
     });
 }
 
 function getBotReply(message) {
     const text = message.toLowerCase();
+
     if (/(slow|performance|bug|error|refresh|backend|server)/.test(text)) {
-        return 'If the app feels slow, make sure the backend server is running on localhost:5500 and refresh once. The UI itself is lightweight, so most issues are caused by the server or a stale browser tab.';
+        return 'If the app feels slow, make sure the backend server is running on localhost:5500 and refresh once.';
     }
+
     if (/(sliding window|window)/.test(text)) {
-        return 'Sliding Window is great for contiguous subarrays or substrings. Keep two pointers, expand and shrink carefully, and update the best answer as the window moves.';
+        return 'Sliding Window is great for contiguous subarrays or substrings.';
     }
+
     if (/(binary search|log n|o\(log n\))/.test(text)) {
-        return 'Binary search uses a sorted array and halves the search space every step. That is why it is O(log n) rather than O(n).';
+        return 'Binary search halves the search space every step, so it is O(log n).';
     }
-    if (/(greedy|dp|dynamic programming|backtracking)/.test(text)) {
-        return 'Greedy picks the best local choice, DP stores subproblem results, and backtracking explores options and prunes when needed. Choose the approach based on overlap and optimality.';
-    }
+
     if (/(login|logout|account|auth)/.test(text)) {
-        return 'Use the Login page to sign in or register. After that, your progress and favorite patterns will be available across the site.';
+        return 'Use the Login page to sign in or register.';
     }
-    if (/(hello|hi|help|thanks)/.test(text)) {
-        return 'I can help with DSA concepts, app usage, and performance tips. Try asking about sliding window, binary search, or login issues.';
-    }
-    return 'I can explain DSA patterns like Sliding Window, Two Pointers, Binary Search, DP, and answer questions about this app’s performance or login flow. Try something like “Explain sliding window” or “Why is the app slow?”';
+
+    return 'I can explain DSA patterns like Sliding Window, Two Pointers, Binary Search, and DP.';
 }
 
 function initChatbot() {
@@ -213,11 +124,6 @@ function initChatbot() {
             </div>
             <div class="chat-messages">
                 <div class="message bot">Hi! I can explain DSA patterns and answer questions about this app.</div>
-            </div>
-            <div class="chat-suggestions">
-                <button type="button" data-suggestion="Explain sliding window">Sliding Window</button>
-                <button type="button" data-suggestion="Why does this app feel slow?">App Performance</button>
-                <button type="button" data-suggestion="What is O(log n)?">Big-O</button>
             </div>
             <form class="chat-form">
                 <input type="text" class="chat-input" placeholder="Ask about DSA or the app" />
@@ -238,26 +144,24 @@ function initChatbot() {
         windowEl.classList.toggle('open');
     });
 
-    widget.querySelectorAll('[data-suggestion]').forEach((btn) => {
-        btn.addEventListener('click', () => {
-            input.value = btn.getAttribute('data-suggestion');
-            form.requestSubmit();
-        });
-    });
-
     form.addEventListener('submit', (event) => {
         event.preventDefault();
+
         const value = input.value.trim();
         if (!value) return;
+
         const userMessage = document.createElement('div');
         userMessage.className = 'message user';
         userMessage.textContent = value;
         messages.appendChild(userMessage);
+
         input.value = '';
+
         const botMessage = document.createElement('div');
         botMessage.className = 'message bot';
         botMessage.textContent = getBotReply(value);
         messages.appendChild(botMessage);
+
         messages.scrollTop = messages.scrollHeight;
     });
 }
@@ -265,25 +169,25 @@ function initChatbot() {
 // ---------- Authentication & Navigation Helpers ----------
 function checkAuthentication() {
     const username = localStorage.getItem('username');
-    const path = (window.location.pathname.split('/').pop() || '').toLowerCase();
+    const path = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
 
-    // Keep the login page available, but do not block the rest of the learning experience.
-    if (!username && path === 'login.html') {
-        return;
+    if (!username && path !== 'login.html') {
+        window.location.href = 'login.html';
+        return false;
     }
 
-    // Optional auth for the app: allow learners to browse lessons even before logging in.
-    return;
+    return true;
 }
 
 function updateNavForAuth() {
     const nav = document.querySelector('.nav');
     const navUl = document.querySelector('.nav ul');
-    if (!navUl || !nav) return;
+    if (!nav || !navUl) return;
+
     const username = localStorage.getItem('username');
 
-    // greeting
     let greetEl = nav.querySelector('#userGreeting');
+
     if (username) {
         if (!greetEl) {
             greetEl = document.createElement('span');
@@ -292,49 +196,46 @@ function updateNavForAuth() {
             greetEl.style.fontWeight = '500';
             nav.insertBefore(greetEl, navUl);
         }
+
         greetEl.textContent = `Hello, ${username}`;
     } else if (greetEl) {
         greetEl.remove();
     }
 
-    // ensure leaderboard link exists
     if (!navUl.querySelector('a[href="leaderboard.html"]')) {
         const li = document.createElement('li');
         li.innerHTML = '<a href="leaderboard.html">Leaderboard</a>';
         navUl.appendChild(li);
     }
 
-    // add login/logout links depending on state
     if (username) {
-        // remove any existing login link
         const loginLink = navUl.querySelector('a[href="login.html"]');
         if (loginLink) {
             loginLink.closest('li').remove();
         }
+
         if (!navUl.querySelector('#logoutLink')) {
             const li = document.createElement('li');
             li.innerHTML = '<a href="#" id="logoutLink">Logout</a>';
             navUl.appendChild(li);
-            li.querySelector('#logoutLink').addEventListener('click', e => {
-                e.preventDefault();
-                const shouldLogout = window.confirm('Are you sure you want to log out?');
-                if (!shouldLogout) return;
+
+            li.querySelector('#logoutLink').addEventListener('click', (event) => {
+                event.preventDefault();
+
                 localStorage.removeItem('username');
                 localStorage.removeItem(learningProgressKey);
                 localStorage.removeItem(onboardingStateKey);
-                updateNavForAuth();
-                if (typeof renderLearningInteractivity === 'function') {
-                    renderLearningInteractivity();
-                }
+
+                window.location.href = 'login.html';
             });
         }
     } else {
-        // not logged in
         if (!navUl.querySelector('a[href="login.html"]')) {
             const li = document.createElement('li');
             li.innerHTML = '<a href="login.html">Login</a>';
             navUl.appendChild(li);
         }
+
         const logoutLink = navUl.querySelector('#logoutLink');
         if (logoutLink) {
             logoutLink.closest('li').remove();
@@ -345,11 +246,25 @@ function updateNavForAuth() {
 function sendProgress(progress) {
     const username = localStorage.getItem('username');
     if (!username) return;
+
+    const cacheKey = `${progressCacheKey}:${username}`;
+    const lastProgress = Number(localStorage.getItem(cacheKey) || 0);
+
+    if (lastProgress >= progress) return;
+
     fetch(`${apiBase}/updateProgress`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({username, progress})
-    }).catch(err => console.warn('progress update failed', err));
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, progress })
+    })
+        .then((res) => res.json())
+        .then((data) => {
+            if (data.success) {
+                const savedProgress = Number(data.user?.progress ?? progress);
+                localStorage.setItem(cacheKey, String(savedProgress));
+            }
+        })
+        .catch((err) => console.warn('progress update failed', err));
 }
 
 function initLoginPage() {
@@ -362,35 +277,49 @@ function initLoginPage() {
 
     const submitAuthRequest = async (mode) => {
         if (!userInput || !passInput) return;
+
         const username = userInput.value.trim();
         const password = passInput.value;
-        if (!username || !password) return alert('Enter credentials');
+
+        if (!username || !password) {
+            alert('Enter credentials');
+            return;
+        }
 
         try {
             const endpoint = mode === 'register' ? '/register' : '/login';
+
             const res = await fetch(`${apiBase}${endpoint}`, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username, password})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
             });
+
             const data = await res.json();
+
             if (data.success) {
                 localStorage.setItem('username', username);
+
                 if (authStatus) {
-                    authStatus.textContent = `Welcome, ${username}! You are now signed in.`;
+                    authStatus.textContent = `Welcome, ${username}!`;
                     authStatus.style.display = 'block';
                 }
+
                 userInput.value = '';
                 passInput.value = '';
-                if (typeof updateNavForAuth === 'function') {
-                    updateNavForAuth();
+
+                if (mode === 'register') {
+                    localStorage.removeItem(onboardingStateKey);
+                    localStorage.removeItem(learningProgressKey);
+                    window.location.href = 'onboarding.html';
+                } else {
+                    window.location.href = 'index.html';
                 }
-                if (typeof renderLearningInteractivity === 'function') {
-                    renderLearningInteractivity();
-                }
-            } else {
-                alert(data.message || (mode === 'register' ? 'Registration failed' : 'Login failed'));
+
+                return;
             }
+
+            alert(data.message || (mode === 'register' ? 'Registration failed' : 'Login failed'));
         } catch (err) {
             console.error(err);
             alert(mode === 'register' ? 'Registration request failed' : 'Login request failed');
@@ -398,8 +327,9 @@ function initLoginPage() {
     };
 
     if (authForm) {
-        authForm.addEventListener('submit', e => {
-            e.preventDefault();
+        authForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
             if (loginBtn) {
                 loginBtn.click();
             }
@@ -407,15 +337,15 @@ function initLoginPage() {
     }
 
     if (loginBtn) {
-        loginBtn.addEventListener('click', async e => {
-            e.preventDefault();
+        loginBtn.addEventListener('click', async (event) => {
+            event.preventDefault();
             await submitAuthRequest('login');
         });
     }
 
     if (registerBtn) {
-        registerBtn.addEventListener('click', async e => {
-            e.preventDefault();
+        registerBtn.addEventListener('click', async (event) => {
+            event.preventDefault();
             await submitAuthRequest('register');
         });
     }
@@ -424,45 +354,38 @@ function initLoginPage() {
 function loadLeaderboard() {
     const list = document.getElementById('leaderboardList');
     if (!list) return;
+
     fetch(`${apiBase}/leaderboard`)
-        .then(r => r.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
             list.innerHTML = '';
-            data.forEach(u => {
+
+            data.forEach((user) => {
                 const li = document.createElement('li');
-                li.textContent = `${u.username} – ${u.progress}%`;
+                li.textContent = `${user.username} - ${user.progress}%`;
                 list.appendChild(li);
             });
         })
-        .catch(err => console.warn('Leaderboard load failed', err));
-}
-
-
+        .catch((err) => console.warn('Leaderboard load failed', err));
+    }
 function initializeDarkMode() {
     if (darkModeInitialized) return;
     darkModeInitialized = true;
-    
+
     const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
-    const darkModeToggle = document.getElementById("darkModeToggle");
-    
-    // Initialize icon based on saved preference
+    const darkModeToggle = document.getElementById('darkModeToggle');
+
     updateDarkModeUI(darkModeEnabled);
-    
+
     if (darkModeToggle) {
-        darkModeToggle.addEventListener("click", function (e) {
-            e.preventDefault();
-            // Get current state
-            const isDarkModeCurrently = document.documentElement.classList.contains("dark-theme");
-            // Toggle it
+        darkModeToggle.addEventListener('click', (event) => {
+            event.preventDefault();
+
+            const isDarkModeCurrently = document.documentElement.classList.contains('dark-theme');
             const newDarkModeState = !isDarkModeCurrently;
-            
-            // Apply to all elements
+
             applyDarkMode(newDarkModeState);
-            
-            // Save to localStorage
-            localStorage.setItem('darkMode', newDarkModeState);
-            
-            // Update UI
+            localStorage.setItem('darkMode', String(newDarkModeState));
             updateDarkModeUI(newDarkModeState);
         });
     }
@@ -470,48 +393,42 @@ function initializeDarkMode() {
 
 function applyDarkMode(isDarkMode) {
     if (isDarkMode) {
-        document.documentElement.classList.add("dark-theme");
+        document.documentElement.classList.add('dark-theme');
     } else {
-        document.documentElement.classList.remove("dark-theme");
+        document.documentElement.classList.remove('dark-theme');
     }
 }
 
 function updateDarkModeUI(isDarkMode) {
-    const darkModeToggle = document.getElementById("darkModeToggle");
-    if (darkModeToggle) {
-        if (isDarkMode) {
-            darkModeToggle.innerHTML = '☀️';
-            darkModeToggle.title = 'Switch to Light Mode';
-            darkModeToggle.setAttribute('aria-label', 'Switch to Light Mode');
-        } else {
-            darkModeToggle.innerHTML = '🌙';
-            darkModeToggle.title = 'Switch to Dark Mode';
-            darkModeToggle.setAttribute('aria-label', 'Switch to Dark Mode');
-        }
+    const darkModeToggle = document.getElementById('darkModeToggle');
+
+    if (!darkModeToggle) return;
+
+    if (isDarkMode) {
+        darkModeToggle.innerHTML = '☀️';
+        darkModeToggle.title = 'Switch to Light Mode';
+        darkModeToggle.setAttribute('aria-label', 'Switch to Light Mode');
+    } else {
+        darkModeToggle.innerHTML = '🌙';
+        darkModeToggle.title = 'Switch to Dark Mode';
+        darkModeToggle.setAttribute('aria-label', 'Switch to Dark Mode');
     }
-    
-    // Apply dark mode to all relevant elements
+
     applyDarkMode(isDarkMode);
 }
 
-// Initialize dark mode on page load
 function initDarkModeOnLoad() {
     const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
-    if (darkModeEnabled) {
-        document.documentElement.classList.add("dark-theme");
-        updateDarkModeUI(true);
-    } else {
-        updateDarkModeUI(false);
-    }
+    updateDarkModeUI(darkModeEnabled);
 }
 
-// Navigation active page highlighting
 function highlightActivePage() {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
     const navLinks = document.querySelectorAll('.nav ul li a');
 
-    navLinks.forEach(link => {
+    navLinks.forEach((link) => {
         const href = link.getAttribute('href');
+
         if (href === currentPage || (currentPage === '' && href === 'index.html')) {
             link.classList.add('active');
         } else {
@@ -522,7 +439,6 @@ function highlightActivePage() {
 
 let commonInitHasRun = false;
 
-// Call on page load for all common initialization
 function commonInit() {
     if (commonInitHasRun) return;
     commonInitHasRun = true;
@@ -530,146 +446,165 @@ function commonInit() {
     initDarkModeOnLoad();
     initializeDarkMode();
     highlightActivePage();
-    checkAuthentication();
+
+    if (!checkAuthentication()) return;
+
     updateNavForAuth();
+
+    const path = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    const username = localStorage.getItem('username');
+    const onboardingState = getOnboardingState();
+
+    if (
+        username &&
+        !onboardingState.level &&
+        path !== 'login.html' &&
+        path !== 'onboarding.html'
+    ) {
+        window.location.href = 'onboarding.html';
+        return;
+    }
+
     renderLearningInteractivity();
     initChatbot();
     runPageSpecificInit();
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', commonInit, { once: true });
-} else {
-    commonInit();
-}
-
-// Page-specific initialization
 function runPageSpecificInit() {
     const path = window.location.pathname.split('/').pop() || 'index.html';
 
     if (path === 'login.html') {
         initLoginPage();
-        return; // nothing else to do on login page
+        return;
+    }
+
+    if (path === 'onboarding.html') {
+        return;
     }
 
     if (path.includes('patterns.html')) {
         renderPatterns();
-        // search/filter event listeners already wired in renderPatterns
         initializeFavoritesFilter();
         sendProgress(30);
     }
+
     if (path.includes('index.html') || path === '' || path === '/') {
         initializeHomeStats();
-        sendProgress(10);
     }
+
     if (path.includes('pattern-detail.html')) {
         sendProgress(50);
     }
+
     if (path.includes('practice.html')) {
         sendProgress(70);
     }
+
     if (path.includes('leaderboard.html')) {
         loadLeaderboard();
         sendProgress(90);
     }
 }
 
-// dynamically build pattern cards from patternData
 function renderPatterns() {
     const container = document.getElementById('patternsContainer');
     if (!container) return;
+
     container.innerHTML = '';
+
     Object.keys(patternData).forEach((id) => {
-        const p = patternData[id];
+        const pattern = patternData[id];
+
         const card = document.createElement('div');
         card.className = 'card';
-        card.setAttribute('data-difficulty', p.difficulty);
+        card.setAttribute('data-difficulty', pattern.difficulty);
         card.setAttribute('data-pattern-id', id);
+
         card.innerHTML = `
             <div class="card-header">
-                <h2>${p.title}</h2>
+                <h2>${pattern.title}</h2>
                 <button class="favorite-btn" title="Add to Favorites">♡</button>
             </div>
-            <div class="difficulty-badge ${p.difficulty}">${p.difficulty.charAt(0).toUpperCase() + p.difficulty.slice(1)}</div>
-            <p><strong>When to Use:</strong> ${p.usage[0] || ''}</p>
-            <p><strong>Time Complexity:</strong> ${p.timeComplexity}</p>
-            <a href="pattern-detail.html?pattern=${id}" class="toggle-btn" style="display: inline-block; text-decoration: none; color: inherit;">View Details</a>
+            <div class="difficulty-badge ${pattern.difficulty}">
+                ${pattern.difficulty.charAt(0).toUpperCase() + pattern.difficulty.slice(1)}
+            </div>
+            <p><strong>When to Use:</strong> ${pattern.usage[0] || ''}</p>
+            <p><strong>Time Complexity:</strong> ${pattern.timeComplexity}</p>
+            <a href="pattern-detail.html?pattern=${id}" class="toggle-btn" style="display:inline-block; text-decoration:none; color:inherit;">
+                View Details
+            </a>
         `;
+
         container.appendChild(card);
     });
-    // attach favorite button handlers and count
+
     initializeFavorites();
     updateFavoriteCount();
-    // wire filters & search again just in case
     applyFilters();
 }
 
-// Home page statistic updater
 function initializeHomeStats() {
     const countEl = document.getElementById('patternCount');
-    if (countEl) {
-        const total = Object.keys(patternData).length;
-        countEl.textContent = total;
-    }
+    if (!countEl) return;
+
+    countEl.textContent = Object.keys(patternData).length;
 }
 
 function toggleContent(button) {
     const content = button.nextElementSibling;
-    content.style.display = content.style.display === "block" ? "none" : "block";
+    content.style.display = content.style.display === 'block' ? 'none' : 'block';
 }
 
 // ===== FAVORITES SYSTEM =====
 function initializeFavorites() {
-    const favoritesBtns = document.querySelectorAll('.favorite-btn');
+    const favoriteButtons = document.querySelectorAll('.favorite-btn');
     const savedFavorites = JSON.parse(localStorage.getItem('favoritePatterns')) || [];
-    
-    // Load saved favorites
-    favoritesBtns.forEach(btn => {
-        const patternId = btn.closest('.card').getAttribute('data-pattern-id');
+
+    favoriteButtons.forEach((button) => {
+        const card = button.closest('.card');
+        if (!card) return;
+
+        const patternId = card.getAttribute('data-pattern-id');
+
         if (savedFavorites.includes(patternId)) {
-            btn.classList.add('favorited');
-            btn.textContent = '♥';
+            button.classList.add('favorited');
+            button.textContent = '♥';
         }
-    });
-    
-    // Add click handlers with animation feedback
-    favoritesBtns.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const card = btn.closest('.card');
-            const patternId = card.getAttribute('data-pattern-id');
-            
-            if (btn.classList.contains('favorited')) {
-                btn.classList.remove('favorited');
-                btn.textContent = '♡';
-                // Remove from favorites
+
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+
+            if (button.classList.contains('favorited')) {
+                button.classList.remove('favorited');
+                button.textContent = '♡';
+
                 const index = savedFavorites.indexOf(patternId);
                 if (index > -1) {
                     savedFavorites.splice(index, 1);
                 }
             } else {
-                btn.classList.add('favorited');
-                btn.textContent = '♥';
-                // Add to favorites
+                button.classList.add('favorited');
+                button.textContent = '♥';
+
                 if (!savedFavorites.includes(patternId)) {
                     savedFavorites.push(patternId);
                 }
-                // Trigger heartbeat animation on favorite
-                btn.style.animation = 'none';
+
+                button.style.animation = 'none';
+
                 setTimeout(() => {
-                    btn.style.animation = 'heartPulse 0.4s ease';
+                    button.style.animation = 'heartPulse 0.4s ease';
                 }, 10);
             }
-            
+
             localStorage.setItem('favoritePatterns', JSON.stringify(savedFavorites));
             updateFavoriteCount();
             applyFilters();
         });
     });
-    
+
     updateFavoriteCount();
 }
-
 
 // Pattern Data Structure
 const patternData = {
@@ -1603,3 +1538,9 @@ __error = sys.stderr.getvalue()
 
 // Initialize practice editor whenever the page loads (function will only attach listeners if elements exist)
 document.addEventListener('DOMContentLoaded', initializePracticeEditor);
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', commonInit, { once: true });
+} else {
+    commonInit();
+}
