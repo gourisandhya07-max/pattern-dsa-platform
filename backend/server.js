@@ -75,9 +75,16 @@ app.post("/updateProgress", (req, res) => {
     return res.json({ success: false, message: "User not found" });
   }
 
-  user.progress = progress;
-  writeUsers(users);
+  const currentProgress = Number(user.progress) || 0;
+const nextProgress = Math.max(currentProgress, progress);
+
+if (currentProgress === nextProgress) {
   return res.json({ success: true, user });
+}
+
+user.progress = nextProgress;
+writeUsers(users);
+return res.json({ success: true, user });
 });
 
 app.get("/leaderboard", (req, res) => {
