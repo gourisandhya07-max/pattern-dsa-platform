@@ -75,8 +75,8 @@ app.post("/updateProgress", (req, res) => {
     return res.json({ success: false, message: "User not found" });
   }
 
-  const currentProgress = Number(user.progress) || 0;
-const nextProgress = Math.max(currentProgress, progress);
+const currentProgress = Number(user.progress) || 0;
+const nextProgress = Math.max(0, Math.min(100, progress));
 
 if (currentProgress === nextProgress) {
   return res.json({ success: true, user });
